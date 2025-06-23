@@ -103,7 +103,7 @@ public class ExportGenerator {
     }
 
     private static void deleteDirectoryRecursively(Path directory) throws IOException {
-        Files.walkFileTree(directory, new SimpleFileVisitor<>() {
+        Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                     throws IOException {
@@ -121,7 +121,7 @@ public class ExportGenerator {
     }
 
     private static void copyDirectory(Path source, Path target) throws IOException {
-        Files.walkFileTree(source, new SimpleFileVisitor<>() {
+        Files.walkFileTree(source, new SimpleFileVisitor<Path>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
                     throws IOException {

@@ -33,10 +33,10 @@ public class MapDataExporter {
 
                 // Construction de la popup
                 StringBuilder popupContent = new StringBuilder();
-                if (name != null && !name.equalsIgnoreCase("null") && !name.isBlank()) {
+                if (name != null && !name.equalsIgnoreCase("null") && !name.isEmpty()) {
                     popupContent.append("<b>Nom : </b>").append(escape(name)).append("<br>");
                 }
-                if (description != null && !description.equalsIgnoreCase("null") && !description.isBlank()) {
+                if (description != null && !description.equalsIgnoreCase("null") && !description.isEmpty()) {
                     popupContent.append("<b>Description : </b>").append(escape(description));
                 }
                 if (popupContent.length() == 0) {

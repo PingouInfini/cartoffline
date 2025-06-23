@@ -1,5 +1,6 @@
 package org.pingouinfini;
 
+import org.geotools.geojson.geom.GeometryJSON;
 import org.pingouinfini.geojson.Coordonnee;
 import org.pingouinfini.geojson.Feature;
 import org.pingouinfini.geojson.Point;
@@ -31,6 +32,7 @@ public class Main {
         // Etape 2 : créer le fichier js avec la liste des Feature (les points et les polygones à afficher)
         List<Feature> features = new ArrayList<>();
 
+        List<Point> points = new ArrayList<>();
         // === POINT 1 ===
         String resourcePath1 = "/samples/images/piece_eau_suisses.jpg";
         String fileName1 = Paths.get(resourcePath1).getFileName().toString();
@@ -44,6 +46,7 @@ public class Main {
 
         Point p1 = new Point(48.79795482082478, 2.115781744016367, "Pièce d'Eau des Suisses", "La pièce d'eau des Suisses est un bassin faisant partie du parc du château de Versailles, construit entre 1679 et 1682. Elle doit son nom au fait d'avoir été creusée par un régiment de Gardes suisses. Elle a été créée pour drainer le potager du Roi.",
                 fileNameIcone1, fileName1);
+        points.add(p1);
         features.add(ExportGenerator.createPointFeature(p1));
 
         // === POINT 2 ===
@@ -52,10 +55,12 @@ public class Main {
         Image icon2 = ImageIO.read(Objects.requireNonNull(Main.class.getResourceAsStream(resourcePathIcon2)));
         ExportGenerator.saveIcon(icon2, outputPath, fileNameIcone2);
         Point p2 = new Point(48.81434371678219, 2.0839889191819077).icon(fileNameIcone2);
+        points.add(p2);
         features.add(ExportGenerator.createPointFeature(p2));
 
         // === POINT 3 ===
         Point p3 = new Point(48.80425807017104, 2.0922632311615756).name("La Lanterne").build();
+        points.add(p3);
         features.add(ExportGenerator.createPointFeature(p3));
 
         // === POINT 4 ===
@@ -64,6 +69,7 @@ public class Main {
         Image image2 = ImageIO.read(Objects.requireNonNull(Main.class.getResourceAsStream(resourcePath2)));
         ExportGenerator.saveImage(image2, outputPath, fileName2);
         Point p4 = new Point(48.80748446195294, 2.110689627619864).description("Chef-d’œuvre de la sculpture française du XVIIe siècle, Apollon sur son char appartient aux premières grandes commandes pour les jardins de Versailles.").filename(fileName2).build();
+        points.add(p4);
         features.add(ExportGenerator.createPointFeature(p4));
 
         // === POINT 5 ===
@@ -72,8 +78,10 @@ public class Main {
         Image image3 = ImageIO.read(Objects.requireNonNull(Main.class.getResourceAsStream(resourcePath3)));
         ExportGenerator.saveImage(image3, outputPath, fileName3);
         Point p5 = new Point(48.819594882175274, 2.113171086205837).name("Hameau de la Reine").description("Le hameau de la Reine est une dépendance du Petit Trianon située dans le parc du château de Versailles.").filename(fileName3).build();
+        points.add(p5);
         features.add(ExportGenerator.createPointFeature(p5));
 
+        List<Polygon> polygons = new ArrayList<>();
         // === POLYGON 1 ===
         String resourcePath4 = "/samples/images/grand_canal_versailles.jpg";
         String fileName4 = Paths.get(resourcePath4).getFileName().toString();
@@ -95,6 +103,7 @@ public class Main {
         );
         Polygon poly1 = new Polygon(polygonRing1, "Grand Canal de Versailles", "Plus grand bassin du parc du château de Versailles. En forme de croix, il fut construit entre 1667 et 1679, à l'instigation de Le Nôtre.")
                 .fillColor("pink").filename(fileName4);
+        polygons.add(poly1);
         features.add(ExportGenerator.createPolygonFeature(poly1));
 
         List<Coordonnee> polygonRing2 = Arrays.asList(
@@ -106,6 +115,7 @@ public class Main {
         );
 
         Polygon poly2 = new Polygon(polygonRing2);
+        polygons.add(poly2);
         features.add(ExportGenerator.createPolygonFeature(poly2));
 
         List<Coordonnee> polygonRing3 = Arrays.asList(
@@ -122,7 +132,7 @@ public class Main {
         // === EXPORT JS ===
         MapDataExporter.generateLeafletJSFromGeoJson(features, outputPath + "/data/data.js");
 
-        // Etape 3 : Stocker des tuiles
+        // Etape 3 : Stocker des tuiles (à remplacer par des appels multithread à geoserver sur un layer)
         Path sourceDir = Paths.get("src/main/resources/samples/tiles");
         Path targetDir = outputPath.resolve("cache-carto");
         Files.walk(sourceDir).forEach(source -> {
@@ -140,5 +150,9 @@ public class Main {
         });
 
         // Etape 4 : ajouter un layer avec l'adresse geoserver à la place du layer OSM
+
+
+        // Export GeoJSON
+        GeoJsonExporter.exportGeoJson(points, polygons, "export.geojson");
     }
 }
