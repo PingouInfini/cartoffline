@@ -149,8 +149,8 @@ public class Main {
             }
         });
 
-        // Etape 4 : ajouter un layer avec l'adresse geoserver à la place du layer OSM
-
+        // Etape 4 : export de tuiles
+        TileDownloader.downloadTiles(0, 5, "KORTANA:s_5da0bf5419ef73d98541518e1fd64e51__255a7c81-bdfc-4e99-998d-09f2afbcc120", Paths.get("outputDirectory"));
 
         // Export GeoJSON
         GeoJsonExporter.exportGeoJson(points, polygons, "export.geojson");
