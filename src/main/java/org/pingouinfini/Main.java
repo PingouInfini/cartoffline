@@ -1,8 +1,6 @@
 package org.pingouinfini;
 
-import org.geotools.geojson.geom.GeometryJSON;
-import org.pingouinfini.geojson.Coordonnee;
-import org.pingouinfini.geojson.Feature;
+import org.pingouinfini.geojson.*;
 import org.pingouinfini.geojson.Point;
 import org.pingouinfini.geojson.Polygon;
 
@@ -102,7 +100,7 @@ public class Main {
                 new Coordonnee(48.81095358585557, 2.099595446529426)
         );
         Polygon poly1 = new Polygon(polygonRing1, "Grand Canal de Versailles", "Plus grand bassin du parc du château de Versailles. En forme de croix, il fut construit entre 1667 et 1679, à l'instigation de Le Nôtre.")
-                .fillColor("pink").filename(fileName4);
+                .fillColor("darkblue").filename(fileName4).fillPattern(FillPattern.MESH).fillOpacity(1.0);
         polygons.add(poly1);
         features.add(ExportGenerator.createPolygonFeature(poly1));
 
@@ -150,7 +148,7 @@ public class Main {
         });
 
         // Etape 4 : export de tuiles
-        TileDownloader.downloadTiles(0, 5, "KORTANA:s_5da0bf5419ef73d98541518e1fd64e51__255a7c81-bdfc-4e99-998d-09f2afbcc120", Paths.get("outputDirectory"));
+        //TileDownloader.downloadTiles(0, 5, "KORTANA:s_5da0bf5419ef73d98541518e1fd64e51__255a7c81-bdfc-4e99-998d-09f2afbcc120", Paths.get("outputDirectory"));
 
         // Export GeoJSON
         GeoJsonExporter.exportGeoJson(points, polygons, "export.geojson");

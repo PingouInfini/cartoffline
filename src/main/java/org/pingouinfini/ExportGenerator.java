@@ -80,6 +80,7 @@ public class ExportGenerator {
         Optional.ofNullable(polygon.getDescription()).ifPresent(description -> polygonProps.put("description", description));
         Optional.ofNullable(polygon.getColor()).ifPresent(color -> polygonProps.put("color", color));
         Optional.ofNullable(polygon.getWeight()).ifPresent(weight -> polygonProps.put("weight", weight));
+        Optional.ofNullable(polygon.getFillPattern()).ifPresent(fillPattern -> polygonProps.put("fillPattern", fillPattern));
         Optional.ofNullable(polygon.getFillColor()).ifPresent(fillColor -> polygonProps.put("fillColor", fillColor));
         Optional.ofNullable(polygon.getFillOpacity()).ifPresent(fillOpacity -> polygonProps.put("fillOpacity", fillOpacity));
         Optional.ofNullable(polygon.getFilename()).ifPresent(imageFilename -> polygonProps.put("imageFilename", imageFilename));
