@@ -1,6 +1,5 @@
 package org.pingouinfini;
 
-
 import org.pingouinfini.geojson.Coordonnee;
 import org.pingouinfini.geojson.Feature;
 import org.pingouinfini.geojson.Geometry;
@@ -13,84 +12,100 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-
 public class MapDataExporter {
 
     static int ICON_SIZE = 36;
 
     public static void generateLeafletJSFromGeoJson(List<Feature> features, String outputPath) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath))) {
+
+            // Ajout style pour popup width
+            writer.write("const style = document.createElement('style');\n");
+            writer.write("style.innerHTML = `.leaflet-popup-content { width: 200px !important; }`;\n");
+            writer.write("document.head.appendChild(style);\n\n");
+
             for (Feature feature : features) {
                 Geometry geometry = feature.getGeometry();
+                String type = geometry.getType();
                 String name = String.valueOf(feature.getProperties().get("name"));
                 String description = String.valueOf(feature.getProperties().get("description"));
                 String icon = String.valueOf(feature.getProperties().getOrDefault("icon", "default.png"));
                 String imageFilename = String.valueOf(feature.getProperties().getOrDefault("imageFilename", null));
-                String htmlImage = "";
-                if (imageFilename != null && !imageFilename.equals("null")) {
-                    htmlImage = String.format("<br><img src='images/illustration/%s' width='200' style='margin-top:10px;'>", imageFilename);
-                }
 
-                // Construction de la popup
-                StringBuilder popupContent = new StringBuilder();
+                boolean hasDescription = description != null && !description.equalsIgnoreCase("null") && !description.isEmpty();
+                boolean hasImage = imageFilename != null && !imageFilename.equals("null");
+                boolean hasAdditionalContent = hasDescription || hasImage;
+
+                StringBuilder popupContent = new StringBuilder("<div style=\\\"width:200px;\\\">");
+
                 if (name != null && !name.equalsIgnoreCase("null") && !name.isEmpty()) {
                     popupContent.append("<b>Nom : </b>").append(escape(name)).append("<br>");
                 }
-                if (description != null && !description.equalsIgnoreCase("null") && !description.isEmpty()) {
-                    popupContent.append("<b>Description : </b>").append(escape(description));
+
+                if (hasAdditionalContent) {
+                    popupContent.append("<div class=\\\"toggle-description\\\" style=\\\"cursor:pointer; color:blue; text-decoration:underline;\\\">▶ Plus d'informations</div>");
+                    popupContent.append("<div class=\\\"additional-content\\\" style=\\\"display:none; margin-top:5px;\\\">");
+
+                    if (hasDescription) {
+                        popupContent.append("<b>Description : </b>").append(escape(description));
+                    }
+
+                    if (hasImage) {
+                        popupContent.append("<br><img src='images/illustration/")
+                                .append(imageFilename)
+                                .append("' width='200' style='margin-top:10px;'>");
+                    }
+
+                    popupContent.append("</div>");
                 }
-                if (popupContent.length() == 0) {
-                    popupContent.append("Non renseigné");
-                }
-                popupContent.append(htmlImage);
 
-                switch (geometry.getType()) {
-                    case "Point":
-                        List<Double> coords = (List<Double>) geometry.getCoordinates(); // [lon, lat] ou [lat, lon] selon ton modèle
-                        double lat = coords.get(1);
-                        double lon = coords.get(0);
-                        String pointLine = String.format(
-                                Locale.ENGLISH,
-                                "L.marker([%f, %f],{icon:L.icon({iconUrl:\"images/marker/%s\",iconSize:[%d,%d]})})" +
-                                        ".addTo(map).bindPopup(\"%s\");",
-                                lat, lon, icon, ICON_SIZE, ICON_SIZE, popupContent
-                        );
-                        writer.write(pointLine);
-                        writer.newLine();
-                        break;
+                popupContent.append("</div>");
 
-                    case "Polygon":
-                        // On suppose que geometry.getCoordinates() retourne List<List<List<Double>>>
-                        // car GeoJSON encode les Polygons ainsi : [[[lon, lat], [lon, lat], ...]]
-                        List<Coordonnee> polygonCoords = (List<Coordonnee>) geometry.getCoordinates().get(0); // outer ring
-                        String coordString = polygonCoords.stream()
-                                .map(coord -> String.format(Locale.ENGLISH, "[%f, %f]", coord.getLatitude(), coord.getLongitude())) // lat, lon
-                                .collect(Collectors.joining(",\n  "));
-                        String color = feature.getProperties().getOrDefault("color", "#000000").toString();
-                        Double weight = Optional.ofNullable(feature.getProperties().get("weight"))
-                                .map(obj -> (obj instanceof Number) ? ((Number) obj).doubleValue() : Double.parseDouble(obj.toString()))
-                                .orElse(0.5);
-                        String fillColor = feature.getProperties().getOrDefault("fillColor", "#727272").toString();
-                        Double fillOpacity = Optional.ofNullable(feature.getProperties().get("fillOpacity"))
-                                .map(obj -> (obj instanceof Number) ? ((Number) obj).doubleValue() : Double.parseDouble(obj.toString()))
-                                .orElse(0.5);
+                if (type.equals("Point")) {
+                    List<Double> coords = (List<Double>) geometry.getCoordinates();
+                    double lat = coords.get(1);
+                    double lon = coords.get(0);
+                    String markerId = String.format("marker_%s_%s",
+                            String.valueOf(lat).replace(".", "_"),
+                            String.valueOf(lon).replace(".", "_"));
+                    writer.write(String.format(Locale.ENGLISH,
+                            "const %s = L.marker([%f, %f],{icon:L.icon({iconUrl:\"images/marker/%s\",iconSize:[%d,%d]})}).addTo(map).bindPopup(\"%s\");\n",
+                            markerId, lat, lon, icon, ICON_SIZE, ICON_SIZE, popupContent));
+                    if (hasAdditionalContent) {
+                        writer.write(generatePopupToggleJS(markerId));
+                    }
+                    writer.newLine();
 
-                        String polygonLine = String.format(
-                                Locale.ENGLISH,
-                                "L.polygon([\n  %s\n], {\n" +
-                                        "  color: \"%s\",\n" +
-                                        "  weight: %f,\n" +
-                                        "  fillColor: \"%s\",\n" +
-                                        "  fillOpacity: %f\n" +
-                                        "}).addTo(map).bindPopup(\"%s\");",
-                                coordString, color, weight, fillColor, fillOpacity, popupContent
-                        );
-                        writer.write(polygonLine);
-                        writer.newLine();
-                        break;
+                } else if (type.equals("Polygon")) {
+                    List<List<Coordonnee>> coords = (List<List<Coordonnee>>) geometry.getCoordinates();
+                    List<Coordonnee> ring = coords.get(0);
+                    String coordString = ring.stream()
+                            .map(c -> String.format(Locale.ENGLISH, "[%f, %f]", c.getLatitude(), c.getLongitude()))
+                            .collect(Collectors.joining(",\n  "));
+                    String color = feature.getProperties().getOrDefault("color", "#000000").toString();
+                    Double weight = Optional.ofNullable(feature.getProperties().get("weight"))
+                            .map(obj -> (obj instanceof Number) ? ((Number) obj).doubleValue() : Double.parseDouble(obj.toString()))
+                            .orElse(0.5);
+                    String fillColor = feature.getProperties().getOrDefault("fillColor", "#727272").toString();
+                    Double fillOpacity = Optional.ofNullable(feature.getProperties().get("fillOpacity"))
+                            .map(obj -> (obj instanceof Number) ? ((Number) obj).doubleValue() : Double.parseDouble(obj.toString()))
+                            .orElse(0.5);
+                    String polygonId = "polygon_" + geometry.hashCode();
 
-                    default:
-                        System.err.println("Unsupported geometry type: " + geometry.getType());
+                    writer.write(String.format(Locale.ENGLISH,
+                            "const %s = L.polygon([\n  %s\n], {\n" +
+                                    "  color: \"%s\",\n" +
+                                    "  weight: %f,\n" +
+                                    "  fillColor: \"%s\",\n" +
+                                    "  fillOpacity: %f\n" +
+                                    "}).addTo(map).bindPopup(\"%s\");\n",
+                            polygonId, coordString, color, weight, fillColor, fillOpacity, popupContent));
+                    if (hasAdditionalContent) {
+                        writer.write(generatePopupToggleJS(polygonId));
+                    }
+                    writer.newLine();
+                } else {
+                    System.err.println("Unsupported geometry type: " + type);
                 }
             }
             System.out.println("Fichier JS généré avec succès : " + outputPath);
@@ -101,5 +116,21 @@ public class MapDataExporter {
 
     private static String escape(String input) {
         return input.replace("\"", "\\\"").replace("\n", "").replace("\r", "");
+    }
+
+    private static String generatePopupToggleJS(String elementId) {
+        return String.format(
+                "%s.on('popupopen', (e) => {\n" +
+                        "  const container = e.popup.getElement();\n" +
+                        "  const toggle = container?.querySelector('.toggle-description');\n" +
+                        "  const content = container?.querySelector('.additional-content');\n" +
+                        "  if (toggle && content) {\n" +
+                        "    toggle.addEventListener('click', () => {\n" +
+                        "      const visible = content.style.display === 'block';\n" +
+                        "      content.style.display = visible ? 'none' : 'block';\n" +
+                        "      toggle.textContent = visible ? '▶ Plus d\\'information' : '▼ Masquer les informations';\n" +
+                        "    });\n" +
+                        "  }\n" +
+                        "});", elementId);
     }
 }
