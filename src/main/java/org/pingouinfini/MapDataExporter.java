@@ -97,23 +97,22 @@ public class MapDataExporter {
                             .orElse(0.5);
 
                     Object patternObj = feature.getProperties().get("fillPattern");
-                    String polygonId = "polygon_" + geometry.hashCode();
+                    String polygonBaseId = "polygon_" + geometry.hashCode(); // Utilisez un ID de base
 
                     boolean usePattern = false;
-                    String patternRef = null;
-                    StringBuilder patternJS = new StringBuilder();
+                    List<Integer> angles = new ArrayList<>(); // Liste pour stocker tous les angles nécessaires
+                    StringBuilder patternJS = new StringBuilder(); // Pour les définitions de L.StripePattern
 
+                    // Déterminez le type de motif et les angles associés
                     if (patternObj instanceof FillPattern) {
                         FillPattern pattern = (FillPattern) patternObj;
 
-                        List<Integer> angles = new ArrayList<>();
-
                         if (pattern == FillPattern.NONE) {
-                            fillOpacity = 0.0;
+                            fillOpacity = 0.0; // Rendre le polygone invisible si pas de remplissage
                         } else if (pattern == FillPattern.FULL) {
-                            // No pattern, solid fill
+                            // Pas de motif, remplissage solide, rien de spécial à faire pour les angles
                         } else {
-                            usePattern = true;
+                            usePattern = true; // On va utiliser des motifs
 
                             if (pattern == FillPattern.DIAGONAL_LEFT) {
                                 angles.add(45);
@@ -124,54 +123,81 @@ public class MapDataExporter {
                             } else if (pattern == FillPattern.VERTICAL) {
                                 angles.add(90);
                             } else if (pattern == FillPattern.GRID) {
-                                angles.add(0);
-                                angles.add(90);
+                                angles.add(0); // Horizontal
+                                angles.add(90); // Vertical
                             } else if (pattern == FillPattern.MESH) {
-                                angles.add(45);
-                                angles.add(-45);
+                                angles.add(45); // Diagonale gauche
+                                angles.add(-45); // Diagonale droite
                             }
 
-                            List<String> patternNames = new ArrayList<>();
+                            // Génération des L.StripePattern
                             for (int i = 0; i < angles.size(); i++) {
-                                String patternName = "pattern_" + polygonId + "_a" + i;
-                                patternNames.add(patternName);
-
+                                String patternName = "pattern_" + polygonBaseId + "_a" + i;
                                 patternJS.append(String.format(Locale.ENGLISH,
                                         "const %s = new L.StripePattern({\n" +
-                                                "  weight: 4,\n" +
-                                                "  spaceWeight: 4,\n" +
+                                                "  weight: 3,\n" +
+                                                "  spaceWeight: 3,\n" +
                                                 "  color: '%s',\n" +
-                                                "  opacity: %f,\n" +
+                                                "  opacity: %f,\n" + // L'opacité du motif
                                                 "  angle: %d\n" +
                                                 "});\n" +
                                                 "%s.addTo(map);\n",
-                                        patternName, fillColor, fillOpacity, angles.get(i), patternName));
-                            }
-
-                            // Si un seul motif : on peut utiliser directement fillPattern: motif
-                            // Si plusieurs : on utilise un groupe de layers
-                            if (patternNames.size() == 1) {
-                                patternRef = patternNames.get(0);
-                            } else {
-                                // Crée un LayerGroup combiné de plusieurs patterns (Leaflet ne le supporte pas nativement, mais on empile les layers en JS)
-                                String groupName = "pattern_" + polygonId + "_group";
-                                patternJS.append(String.format("const %s = L.layerGroup([%s]);\n",
-                                        groupName, String.join(", ", patternNames)));
-                                patternRef = groupName;
+                                        patternName, fillColor, 1.0, angles.get(i), patternName)); // Mettre l'opacité du motif à 1.0
+                                // pour qu'il ne soit pas transparent par défaut, et contrôler via fillOpacity du polygone si besoin.
                             }
                         }
                     }
 
-                    if (usePattern) {
-                        writer.write(patternJS.toString());
-                        writer.write(String.format(Locale.ENGLISH,
-                                "const %s = L.polygon([\n  %s\n], {\n" +
-                                        "  color: \"%s\",\n" +
-                                        "  weight: %f,\n" +
-                                        "  fillPattern: %s\n" +
-                                        "}).addTo(map).bindPopup(\"%s\");\n",
-                                polygonId, coordString, color, weight, patternRef, popupContent));
+                    // Écriture du code JS
+                    if (usePattern && !angles.isEmpty()) {
+                        writer.write(patternJS.toString()); // Écrire toutes les définitions de motifs
+
+                        // Si c'est un seul motif, on génère un seul polygone
+                        if (angles.size() == 1) {
+                            String polygonId = polygonBaseId;
+                            String patternRef = "pattern_" + polygonBaseId + "_a0"; // Le nom du motif unique
+
+                            writer.write(String.format(Locale.ENGLISH,
+                                    "const %s = L.polygon([\n  %s\n], {\n" +
+                                            "  color: \"%s\",\n" +
+                                            "  weight: %f,\n" +
+                                            "  fillColor: \"%s\",\n" + // Couleur de remplissage pour les motifs simples
+                                            "  fillOpacity: %f,\n" +  // Opacité de remplissage pour les motifs simples
+                                            "  fillPattern: %s\n" +
+                                            "}).addTo(map);\n", // Pas de popup ici, on le mettra sur le dernier ou un group
+                                    polygonId, coordString, color, weight, fillColor, fillOpacity, patternRef));
+
+                            // Ajouter le popup seulement si un seul polygone est créé
+                            writer.write(String.format(Locale.ENGLISH, "%s.bindPopup(\"%s\");\n", polygonId, popupContent));
+
+                        } else {
+                            // Si plusieurs motifs (GRID, MESH), générer plusieurs polygones superposés
+                            writer.write(String.format(Locale.ENGLISH, "const polygonCoords_%s = [\n  %s\n];\n", polygonBaseId, coordString));
+
+                            for (int i = 0; i < angles.size(); i++) {
+                                String polygonInstanceId = polygonBaseId + "_" + (i == 0 ? "main" : "overlay" + i); // Nommez le premier "main" pour le popup
+                                String patternRef = "pattern_" + polygonBaseId + "_a" + i;
+
+                                // Pour les polygones superposés, le fillColor doit être transparent
+                                // et l'opacité du motif doit être gérée par le pattern ou fillOpacity à 1
+                                writer.write(String.format(Locale.ENGLISH,
+                                        "const %s = L.polygon(polygonCoords_%s, {\n" +
+                                                "  color: \"%s\",\n" +
+                                                "  weight: %f,\n" +
+                                                "  fillColor: \"transparent\",\n" + // TRÈS IMPORTANT : fond transparent
+                                                "  fillOpacity: 1.0,\n" + // L'opacité du polygone doit être 1 pour que le motif soit visible
+                                                "  fillPattern: %s\n" +
+                                                "}).addTo(map);\n",
+                                        polygonInstanceId, polygonBaseId, color, weight, patternRef));
+
+                                // Si c'est le premier polygone, lui attacher le popup
+                                if (i != 0) {
+                                    writer.write(String.format(Locale.ENGLISH, "%s.bindPopup(\"%s\");\n", polygonInstanceId, popupContent));
+                                }
+                            }
+                        }
                     } else {
+                        // Cas sans motif (NONE ou FULL)
                         writer.write(String.format(Locale.ENGLISH,
                                 "const %s = L.polygon([\n  %s\n], {\n" +
                                         "  color: \"%s\",\n" +
@@ -179,11 +205,13 @@ public class MapDataExporter {
                                         "  fillColor: \"%s\",\n" +
                                         "  fillOpacity: %f\n" +
                                         "}).addTo(map).bindPopup(\"%s\");\n",
-                                polygonId, coordString, color, weight, fillColor, fillOpacity, popupContent));
+                                polygonBaseId, coordString, color, weight, fillColor, fillOpacity, popupContent));
                     }
 
                     if (hasAdditionalContent) {
-                        writer.write(generatePopupToggleJS(polygonId));
+                        // Appliquez le toggle au premier polygone ou au polygone unique
+                        String targetPolygonId = usePattern && angles.size() > 1 ? polygonBaseId + "_main" : polygonBaseId;
+                        writer.write(generatePopupToggleJS(targetPolygonId));
                     }
 
                     writer.newLine();

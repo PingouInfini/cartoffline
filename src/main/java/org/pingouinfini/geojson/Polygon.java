@@ -56,6 +56,11 @@ public class Polygon {
         return this;
     }
 
+    public Polygon borderColor(String color) {
+        this.color = color;
+        return this;
+    }
+
     public Polygon weight(Double weight) {
         this.weight = weight;
         return this;

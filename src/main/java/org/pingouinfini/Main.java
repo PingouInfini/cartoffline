@@ -100,10 +100,11 @@ public class Main {
                 new Coordonnee(48.81095358585557, 2.099595446529426)
         );
         Polygon poly1 = new Polygon(polygonRing1, "Grand Canal de Versailles", "Plus grand bassin du parc du château de Versailles. En forme de croix, il fut construit entre 1667 et 1679, à l'instigation de Le Nôtre.")
-                .fillColor("darkblue").filename(fileName4).fillPattern(FillPattern.MESH).fillOpacity(1.0);
+                .borderColor("darkblue").filename(fileName4).fillPattern(FillPattern.NONE);
         polygons.add(poly1);
         features.add(ExportGenerator.createPolygonFeature(poly1));
 
+        // === POLYGON 2 ===
         List<Coordonnee> polygonRing2 = Arrays.asList(
                 new Coordonnee(48.82308811184643, 2.098874917723104),
                 new Coordonnee(48.822424117995205, 2.101310363502395),
@@ -116,6 +117,7 @@ public class Main {
         polygons.add(poly2);
         features.add(ExportGenerator.createPolygonFeature(poly2));
 
+        // === POLYGON 3 ===
         List<Coordonnee> polygonRing3 = Arrays.asList(
                 new Coordonnee(48.80266440080202, 2.0836168196017097),
                 new Coordonnee(48.804852967976565, 2.08367751106341),
@@ -123,9 +125,79 @@ public class Main {
                 new Coordonnee(48.80202480149371, 2.087045887187782)
         );
 
-        Polygon poly3 = new Polygon(polygonRing3).name("INRAE").fillColor("cyan").fillOpacity(0.8);
+        Polygon poly3 = new Polygon(polygonRing3).name("INRAE").fillPattern(FillPattern.FULL)
+                .fillColor("cyan").fillOpacity(0.8);
         features.add(ExportGenerator.createPolygonFeature(poly3));
 
+        // === POLYGON 4 ===
+        List<Coordonnee> polygonRing4 = Arrays.asList(
+                new Coordonnee(48.78804210972139, 2.100575900209618),
+                new Coordonnee(48.791064399580165, 2.101764533826793),
+                new Coordonnee(48.79046485047943, 2.1067605094989825),
+                new Coordonnee(48.78745476101201, 2.1051261382753665)
+        );
+
+        Polygon poly4 = new Polygon(polygonRing4).name("STAT").fillPattern(FillPattern.DIAGONAL_LEFT).fillColor("RED").fillOpacity(0.8);
+        features.add(ExportGenerator.createPolygonFeature(poly4));
+
+        // === POLYGON 5 ===
+        List<Coordonnee> polygonRing5 = Arrays.asList(
+                new Coordonnee(48.83009583774547, 2.114081520504228),
+                new Coordonnee(48.82795888333487, 2.1193119958506013),
+                new Coordonnee(48.82503738695459, 2.118079591495158),
+                new Coordonnee(48.82550007135308, 2.1145031920540527)
+        );
+
+        Polygon poly5 = new Polygon(polygonRing5).name("Parly2").fillPattern(FillPattern.DIAGONAL_RIGHT).fillColor("YELLOW").fillOpacity(0.8);
+        features.add(ExportGenerator.createPolygonFeature(poly5));
+
+        // === POLYGON 6 ===
+        List<Coordonnee> polygonRing6 = Arrays.asList(
+                new Coordonnee(48.80186740422758, 2.129628741809515),
+                new Coordonnee(48.80153988543428, 2.130798729671492),
+                new Coordonnee(48.800703739521275, 2.130161086286715),
+                new Coordonnee(48.80091952044616, 2.129096397332315)
+        );
+
+        Polygon poly6 = new Polygon(polygonRing6).name("Mairie Versailles").fillPattern(FillPattern.GRID)
+                .fillColor("GREY").fillOpacity(1.0);
+        features.add(ExportGenerator.createPolygonFeature(poly6));
+
+        // === POLYGON 7 ===
+        List<Coordonnee> polygonRing7 = Arrays.asList(
+                new Coordonnee(48.79590518349168, 2.1345089479474373),
+                new Coordonnee(48.796111442472366, 2.13660437968734),
+                new Coordonnee(48.795088072272314, 2.1370379172886995),
+                new Coordonnee(48.794818343317, 2.1346895886146706)
+        );
+
+        Polygon poly7 = new Polygon(polygonRing7).name("Gare des Chantiers").fillPattern(FillPattern.MESH)
+                .fillColor("Lime").fillOpacity(1.0);
+        features.add(ExportGenerator.createPolygonFeature(poly7));
+
+        // === POLYGON 8 ===
+        List<Coordonnee> polygonRing8 = Arrays.asList(
+                new Coordonnee(48.80645048196352, 2.1211373993181404),
+                new Coordonnee(48.80599045944829, 2.1231364893688527),
+                new Coordonnee(48.802659136002376, 2.1209447159397588),
+                new Coordonnee(48.803166780532514, 2.1194273343350014)
+        );
+
+        Polygon poly8 = new Polygon(polygonRing8).name("Chateau").fillPattern(FillPattern.HORIZONTAL)
+                .fillColor("ORANGE").fillOpacity(1.0);
+        features.add(ExportGenerator.createPolygonFeature(poly8));
+
+        // === POLYGON 9 ===
+        List<Coordonnee> polygonRing9 = Arrays.asList(
+                new Coordonnee(48.803085853674894, 2.1304336451816854),
+                new Coordonnee(48.80286654306353, 2.1311640303485753),
+                new Coordonnee(48.802387829473, 2.1309420505429517),
+                new Coordonnee(48.80261893315613, 2.1301436393065964)
+        );
+
+        Polygon poly9 = new Polygon(polygonRing9).name("Préfecture").fillPattern(FillPattern.VERTICAL)
+                .fillColor("Fuchsia").fillOpacity(1.0);
+        features.add(ExportGenerator.createPolygonFeature(poly9));
 
         // === EXPORT JS ===
         MapDataExporter.generateLeafletJSFromGeoJson(features, outputPath + "/data/data.js");
@@ -151,6 +223,6 @@ public class Main {
         //TileDownloader.downloadTiles(0, 5, "KORTANA:s_5da0bf5419ef73d98541518e1fd64e51__255a7c81-bdfc-4e99-998d-09f2afbcc120", Paths.get("outputDirectory"));
 
         // Export GeoJSON
-        GeoJsonExporter.exportGeoJson(points, polygons, "export.geojson");
+//        GeoJsonExporter.exportGeoJson(points, polygons, "export.geojson");
     }
 }
