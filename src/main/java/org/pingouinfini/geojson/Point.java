@@ -1,7 +1,5 @@
 package org.pingouinfini.geojson;
 
-import java.awt.Image;
-
 public class Point {
     private final Double latitude;
     private final Double longitude;
