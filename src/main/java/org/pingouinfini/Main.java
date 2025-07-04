@@ -100,7 +100,7 @@ public class Main {
                 new Coordonnee(48.81095358585557, 2.099595446529426)
         );
         Polygon poly1 = new Polygon(polygonRing1, "Grand Canal de Versailles", "Plus grand bassin du parc du château de Versailles. En forme de croix, il fut construit entre 1667 et 1679, à l'instigation de Le Nôtre.")
-                .borderColor("darkblue").filename(fileName4).fillPattern(FillPattern.NONE);
+                .borderColor("darkblue").filename(fileName4).fillPattern(FillPattern.NONE).weight(3.0);
         polygons.add(poly1);
         features.add(ExportGenerator.createPolygonFeature(poly1));
 
@@ -198,6 +198,71 @@ public class Main {
         Polygon poly9 = new Polygon(polygonRing9).name("Préfecture").fillPattern(FillPattern.VERTICAL)
                 .fillColor("Fuchsia").fillOpacity(1.0);
         features.add(ExportGenerator.createPolygonFeature(poly9));
+
+        // === LINE 1 ===
+        List<Coordonnee> lineCoord1 = Arrays.asList(
+                new Coordonnee(48.83164463572279, 2.14765557981711),
+                new Coordonnee(48.83679231076493, 2.186575523902859),
+                new Coordonnee(48.83930609936617, 2.196214575475498),
+                new Coordonnee(48.83990460186796, 2.219493794367908),
+                new Coordonnee(48.84804352590949, 2.225313599091011),
+                new Coordonnee(48.848488787524566, 2.2530594957312995)
+        );
+        Line line1 = new Line(lineCoord1).name("A13").lineStyle(LineStyle.CONTINUOUS);
+        features.add(ExportGenerator.createLineFeature(line1));
+
+        // === LINE 2 ===
+        List<Coordonnee> lineCoord2 = Arrays.asList(
+                new Coordonnee(48.846048038308545, 2.2585084955916948),
+                new Coordonnee(48.88744905076601, 2.290085344496615),
+                new Coordonnee(48.900388729010025, 2.320580794466436),
+                new Coordonnee(48.899677844631896, 2.3926019635440965),
+                new Coordonnee(48.83608392085882, 2.412499703949936),
+                new Coordonnee(48.819994805502596, 2.3493460061400957),
+                new Coordonnee(48.84476704853975, 2.258941055165735)
+        );
+        Line line2 = new Line(lineCoord2).name("Périphérique").lineStyle(LineStyle.DOT).color("red").weight(10.0);
+        features.add(ExportGenerator.createLineFeature(line2));
+
+        // === LINE 3 ===
+        List<Coordonnee> lineCoord3 = Arrays.asList(
+                new Coordonnee(48.84486175156046, 2.2735400427290626),
+                new Coordonnee(48.824829359947216, 2.2495295767955006),
+                new Coordonnee(48.82714507090403, 2.229189500558789),
+                new Coordonnee(48.83680949163688, 2.2235309831094785),
+                new Coordonnee(48.86599277494265, 2.2285777689426474),
+                new Coordonnee(48.89596339507701, 2.2645170013909723)
+        );
+        Line line3 = new Line(lineCoord3).name("SEINE").lineStyle(LineStyle.DASH).color("orange").arrowStyle(ArrowStyle.END);
+        features.add(ExportGenerator.createLineFeature(line3));
+
+        // === LINE 4 ===
+        List<Coordonnee> lineCoord4 = Arrays.asList(
+                new Coordonnee(48.857809062435074, 2.2952909083071096),
+                new Coordonnee(48.85283940460138, 2.3029727550927612)
+        );
+        Line line4 = new Line(lineCoord4).name("Champ-de-Mars").lineStyle(LineStyle.MIXED).color("cyan").arrowStyle(ArrowStyle.BOTH);
+        features.add(ExportGenerator.createLineFeature(line4));
+
+        // === LINE 5 ===
+        List<Coordonnee> lineCoord5 = Arrays.asList(
+                new Coordonnee(48.87380141404359, 2.2955415867919147),
+                new Coordonnee(48.86572140218105, 2.3207196324567585)
+        );
+        Line line5 = new Line(lineCoord5).name("Champs-Élysées (direction Arc de Triomphe) ").lineStyle(LineStyle.MIXED_TWO_POINT).color("purple").arrowStyle(ArrowStyle.START);
+        features.add(ExportGenerator.createLineFeature(line5));
+
+        // === LINE 6 ===
+        List<Coordonnee> lineCoord6 = Arrays.asList(
+                new Coordonnee(48.79528571636546, 2.1359229542601943),
+                new Coordonnee(48.79668841194676, 2.1536283626620096),
+                new Coordonnee(48.80068533222095, 2.1711014056101083),
+                new Coordonnee(48.799548759158796, 2.1844024663302912),
+                new Coordonnee(48.8033207925206, 2.234514131049336),
+                new Coordonnee(48.81703348818656, 2.249518488759423)
+        );
+        Line line6 = new Line(lineCoord6).name("RER C").lineStyle(LineStyle.DOT_LONG).color("yellow").arrowStyle(ArrowStyle.NONE);
+        features.add(ExportGenerator.createLineFeature(line6));
 
         // === EXPORT JS ===
         MapDataExporter.generateLeafletJSFromGeoJson(features, outputPath + "/data/data.js");

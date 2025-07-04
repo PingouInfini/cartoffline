@@ -1,17 +1,11 @@
 package org.pingouinfini;
 
-import org.pingouinfini.geojson.Coordonnee;
-import org.pingouinfini.geojson.Feature;
-import org.pingouinfini.geojson.FillPattern;
-import org.pingouinfini.geojson.Geometry;
+import org.pingouinfini.geojson.*;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MapDataExporter {
@@ -215,7 +209,102 @@ public class MapDataExporter {
                     }
 
                     writer.newLine();
-                } else {
+                } else if (type.equals("Line")) {
+                    List<List<Coordonnee>> coords = (List<List<Coordonnee>>) geometry.getCoordinates();
+                    List<Coordonnee> ring = coords.get(0);
+
+                    String coordString = ring.stream()
+                            .map(c -> String.format(Locale.ENGLISH, "[%f, %f]", c.getLatitude(), c.getLongitude()))
+                            .collect(Collectors.joining(",\n  "));
+
+                    Map<String, Object> props = feature.getProperties();
+
+                    String color = props.getOrDefault("color", "#000000").toString();
+
+                    double weight = Optional.ofNullable(props.get("weight"))
+                            .map(obj -> (obj instanceof Number) ? ((Number) obj).doubleValue() : Double.parseDouble(obj.toString()))
+                            .orElse(1.0);
+
+                    LineStyle lineStyle = Optional.ofNullable(props.get("lineStyle"))
+                            .filter(LineStyle.class::isInstance)
+                            .map(LineStyle.class::cast)
+                            .orElse(LineStyle.CONTINUOUS);
+
+                    ArrowStyle arrowStyle = Optional.ofNullable(props.get("arrowStyle"))
+                            .map(Object::toString)
+                            .map(s -> {
+                                try {
+                                    return ArrowStyle.valueOf(s.toUpperCase());
+                                } catch (IllegalArgumentException e) {
+                                    return ArrowStyle.NONE;
+                                }
+                            })
+                            .orElse(ArrowStyle.NONE);
+
+                    Coordonnee first = ring.get(0);
+                    String baseId = String.format("arrow_%s_%s",
+                            String.valueOf(first.getLatitude()).replace(".", "_"),
+                            String.valueOf(first.getLongitude()).replace(".", "_"));
+
+                    if (lineStyle == LineStyle.CONTINUOUS) {
+                        writer.write(String.format(Locale.ENGLISH,
+                                "var %s = L.polyline([\n  %s\n], {color: \"%s\", weight: %.1f}).addTo(map).bindPopup(\"%s\");\n",
+                                baseId, coordString, color, weight, popupContent));
+                    } else {
+                        List<String> patternList = new ArrayList<>();
+
+                        // Ligne décorative selon style
+                        if (lineStyle == LineStyle.DOT) {
+                            patternList.add(String.format(Locale.ENGLISH,
+                                    "{ offset: 0, repeat: 5, symbol: L.Symbol.dash({pixelSize: 0, pathOptions: {color: '%s', weight: %.1f}}) }",
+                                    color, weight));
+                        } else if (lineStyle == LineStyle.DASH) {
+                            patternList.add(String.format(Locale.ENGLISH,
+                                    "{ offset: 12, repeat: 20, symbol: L.Symbol.dash({pixelSize: 10, pathOptions: {color: '%s', weight: %.1f}}) }",
+                                    color, weight));
+                        } else if (lineStyle == LineStyle.MIXED) {
+                            patternList.add(String.format(Locale.ENGLISH,
+                                    "{ offset: 12, repeat: 25, symbol: L.Symbol.dash({pixelSize: 10, pathOptions: {color: '%s', weight: %.1f}}) }",
+                                    color, weight));
+                            patternList.add(String.format(Locale.ENGLISH,
+                                    "{ offset: 0, repeat: 25, symbol: L.Symbol.dash({pixelSize: 0, pathOptions: {color: '%s', weight: %.1f}}) }",
+                                    color, weight));
+                        } else if (lineStyle == LineStyle.MIXED_TWO_POINT) {
+                            patternList.add(String.format(Locale.ENGLISH,
+                                    "{ offset: 8, repeat: 20, symbol: L.Symbol.dash({pixelSize: 0, pathOptions: {color: '%s', weight: %.1f}}) }",
+                                    color, weight));
+                            patternList.add(String.format(Locale.ENGLISH,
+                                    "{ offset: 12, repeat: 20, symbol: L.Symbol.dash({pixelSize: 0, pathOptions: {color: '%s', weight: %.1f}}) }",
+                                    color, weight));
+                            patternList.add(String.format(Locale.ENGLISH,
+                                    "{ offset: 20, repeat: 20, symbol: L.Symbol.dash({pixelSize: 5, pathOptions: {color: '%s', weight: %.1f}}) }",
+                                    color, weight));
+                        } else if (lineStyle == LineStyle.DOT_LONG) {
+                            patternList.add(String.format(Locale.ENGLISH,
+                                    "{ offset: 0, repeat: 10, symbol: L.Symbol.dash({pixelSize: 3, pathOptions: {color: '%s', weight: %.1f}}) }",
+                                    color, weight));
+                        }
+
+                        // Ajout des flèches dans les patterns
+                        if (arrowStyle == ArrowStyle.START || arrowStyle == ArrowStyle.BOTH) {
+                            patternList.add(String.format(
+                                    "{ offset: 0, symbol: L.Symbol.arrowHead({pixelSize: 10, polygon: false, headAngle: 270, pathOptions: {stroke: true, color: '%s'}}) }",
+                                    color));
+                        }
+                        if (arrowStyle == ArrowStyle.END || arrowStyle == ArrowStyle.BOTH) {
+                            patternList.add(String.format(
+                                    "{ offset: '100%%', symbol: L.Symbol.arrowHead({pixelSize: 10, polygon: false, pathOptions: {stroke: true, color: '%s'}}) }",
+                                    color));
+                        }
+
+                        writer.write(String.format(Locale.ENGLISH,
+                                "var %s = L.polylineDecorator([\n  %s\n], {\n  patterns: [\n    %s\n  ]\n}).addTo(map).bindPopup(\"%s\");\n",
+                                baseId, coordString, String.join(",\n    ", patternList), popupContent));
+                    }
+
+                    writer.newLine();
+                }
+                else {
                     System.err.println("Unsupported geometry type: " + type);
                 }
             }

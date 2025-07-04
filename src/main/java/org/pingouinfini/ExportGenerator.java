@@ -89,6 +89,19 @@ public class ExportGenerator {
         return new Feature(polygonGeometry, polygonProps);
     }
 
+    public static Feature createLineFeature(Line line) {
+        List<List<Coordonnee>> lineCoords = Arrays.asList(line.getCoordinateArray());
+        Map<String, Object> lineProps = new HashMap<>();
+        Optional.ofNullable(line.getColor()).ifPresent(color -> lineProps.put("color", color));
+        Optional.ofNullable(line.getName()).ifPresent(name -> lineProps.put("name", name));
+        Optional.ofNullable(line.getLineStyle()).ifPresent(lineStyle -> lineProps.put("lineStyle", lineStyle));
+        Optional.ofNullable(line.getWeight()).ifPresent(weight -> lineProps.put("weight", weight));
+        Optional.ofNullable(line.getArrowStyle()).ifPresent(arrowStyle -> lineProps.put("arrowStyle", arrowStyle));
+
+        Geometry lineGeometry = new Geometry("Line", lineCoords);
+        return new Feature(lineGeometry, lineProps);
+    }
+
 
     public static void generateNewExport(Path outputDirectory) throws IOException {
         // Supprimer le répertoire s'il existe
