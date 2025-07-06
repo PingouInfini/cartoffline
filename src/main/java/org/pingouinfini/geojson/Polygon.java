@@ -7,6 +7,7 @@ public class Polygon {
     private String name;
     private String description;
     private String color;
+    private LineStyle lineStyle;
     private Double weight;
     private FillPattern fillPattern;
     private String fillColor;
@@ -15,7 +16,7 @@ public class Polygon {
     private String filename;
 
     public Polygon build() {
-        return new Polygon(coordinateArray, name, description, color, weight, fillPattern, fillColor, fillOpacity, icon, filename);
+        return new Polygon(coordinateArray, name, description, color, lineStyle, weight, fillPattern, fillColor, fillOpacity, icon, filename);
     }
 
     public Polygon(List<Coordonnee> coordinateArray) {
@@ -28,11 +29,12 @@ public class Polygon {
         this.description = description;
     }
 
-    public Polygon(List<Coordonnee> coordinateArray, String name, String description, String color, Double weight, FillPattern fillPattern, String fillColor, Double fillOpacity, String icon, String filename) {
+    public Polygon(List<Coordonnee> coordinateArray, String name, String description, String color, LineStyle lineStyle, Double weight, FillPattern fillPattern, String fillColor, Double fillOpacity, String icon, String filename) {
         this.coordinateArray = coordinateArray;
         this.name = name;
         this.description = description;
         this.color = color;
+        this.lineStyle = lineStyle;
         this.weight = weight;
         this.fillPattern = fillPattern;
         this.fillColor = fillColor;
@@ -53,6 +55,11 @@ public class Polygon {
 
     public Polygon color(String color) {
         this.color = color;
+        return this;
+    }
+
+    public Polygon lineStyle(LineStyle lineStyle) {
+        this.lineStyle = lineStyle;
         return this;
     }
 
@@ -105,6 +112,10 @@ public class Polygon {
 
     public String getColor() {
         return color;
+    }
+
+    public LineStyle getLineStyle() {
+        return lineStyle;
     }
 
     public Double getWeight() {

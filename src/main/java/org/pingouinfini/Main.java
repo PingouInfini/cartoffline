@@ -100,7 +100,7 @@ public class Main {
                 new Coordonnee(48.81095358585557, 2.099595446529426)
         );
         Polygon poly1 = new Polygon(polygonRing1, "Grand Canal de Versailles", "Plus grand bassin du parc du château de Versailles. En forme de croix, il fut construit entre 1667 et 1679, à l'instigation de Le Nôtre.")
-                .borderColor("darkblue").filename(fileName4).fillPattern(FillPattern.NONE).weight(3.0);
+                .borderColor("darkblue").filename(fileName4).fillPattern(FillPattern.NONE).weight(3.0).lineStyle(LineStyle.DASH);
         polygons.add(poly1);
         features.add(ExportGenerator.createPolygonFeature(poly1));
 
@@ -125,7 +125,7 @@ public class Main {
                 new Coordonnee(48.80202480149371, 2.087045887187782)
         );
 
-        Polygon poly3 = new Polygon(polygonRing3).name("INRAE").fillPattern(FillPattern.FULL)
+        Polygon poly3 = new Polygon(polygonRing3).name("INRAE").fillPattern(FillPattern.FULL).lineStyle(LineStyle.DOT)
                 .fillColor("cyan").fillOpacity(0.8);
         features.add(ExportGenerator.createPolygonFeature(poly3));
 
@@ -137,7 +137,8 @@ public class Main {
                 new Coordonnee(48.78745476101201, 2.1051261382753665)
         );
 
-        Polygon poly4 = new Polygon(polygonRing4).name("STAT").fillPattern(FillPattern.DIAGONAL_LEFT).fillColor("RED").fillOpacity(0.8);
+        Polygon poly4 = new Polygon(polygonRing4).name("STAT").fillPattern(FillPattern.DIAGONAL_LEFT).fillColor("RED")
+                .lineStyle(LineStyle.MIXED).weight(3.0).fillOpacity(0.8);
         features.add(ExportGenerator.createPolygonFeature(poly4));
 
         // === POLYGON 5 ===
@@ -148,7 +149,8 @@ public class Main {
                 new Coordonnee(48.82550007135308, 2.1145031920540527)
         );
 
-        Polygon poly5 = new Polygon(polygonRing5).name("Parly2").fillPattern(FillPattern.DIAGONAL_RIGHT).fillColor("YELLOW").fillOpacity(0.8);
+        Polygon poly5 = new Polygon(polygonRing5).name("Parly2").fillPattern(FillPattern.DIAGONAL_RIGHT)
+                .lineStyle(LineStyle.MIXED_TWO_POINT).weight(2.0).fillColor("YELLOW").fillOpacity(0.8);
         features.add(ExportGenerator.createPolygonFeature(poly5));
 
         // === POLYGON 6 ===
@@ -160,7 +162,7 @@ public class Main {
         );
 
         Polygon poly6 = new Polygon(polygonRing6).name("Mairie Versailles").fillPattern(FillPattern.GRID)
-                .fillColor("GREY").fillOpacity(1.0);
+                .lineStyle(LineStyle.DOT_LONG).weight(2.0).fillColor("GREY").fillOpacity(1.0);
         features.add(ExportGenerator.createPolygonFeature(poly6));
 
         // === POLYGON 7 ===

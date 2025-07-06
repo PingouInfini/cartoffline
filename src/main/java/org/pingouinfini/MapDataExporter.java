@@ -90,23 +90,50 @@ public class MapDataExporter {
                             .map(obj -> (obj instanceof Number) ? ((Number) obj).doubleValue() : Double.parseDouble(obj.toString()))
                             .orElse(0.5);
 
+                    LineStyle lineStyle = Optional.ofNullable(feature.getProperties().get("lineStyle"))
+                            .filter(LineStyle.class::isInstance)
+                            .map(LineStyle.class::cast)
+                            .orElse(LineStyle.CONTINUOUS);
+
+                    String dashArray;
+                    switch (lineStyle) {
+                        case DOT:
+                            dashArray = "\"1, 6\"";
+                            break;
+                        case DASH:
+                            dashArray = "\"8, 6\"";
+                            break;
+                        case MIXED:
+                            dashArray = "\"8, 6, 1, 6\"";
+                            break;
+                        case MIXED_TWO_POINT:
+                            dashArray = "\"8, 6, 1, 6, 1, 6\"";
+                            break;
+                        case DOT_LONG:
+                            dashArray = "\"4, 10\"";
+                            break;
+                        case CONTINUOUS:
+                        default:
+                            dashArray = null;
+                    }
+
                     Object patternObj = feature.getProperties().get("fillPattern");
-                    String polygonBaseId = "polygon_" + geometry.hashCode(); // Utilisez un ID de base
+                    String polygonBaseId = "polygon_" + geometry.hashCode();
 
                     boolean usePattern = false;
-                    List<Integer> angles = new ArrayList<>(); // Liste pour stocker tous les angles nécessaires
-                    StringBuilder patternJS = new StringBuilder(); // Pour les définitions de L.StripePattern
+                    boolean bindPopupOnOverlay = false;
+                    List<Integer> angles = new ArrayList<>();
+                    StringBuilder patternJS = new StringBuilder();
 
-                    // Déterminez le type de motif et les angles associés
                     if (patternObj instanceof FillPattern) {
                         FillPattern pattern = (FillPattern) patternObj;
 
                         if (pattern == FillPattern.NONE) {
-                            fillOpacity = 0.0; // Rendre le polygone invisible si pas de remplissage
+                            fillOpacity = 0.0;
                         } else if (pattern == FillPattern.FULL) {
-                            // Pas de motif, remplissage solide, rien de spécial à faire pour les angles
+                            // rien
                         } else {
-                            usePattern = true; // On va utiliser des motifs
+                            usePattern = true;
 
                             if (pattern == FillPattern.DIAGONAL_LEFT) {
                                 angles.add(45);
@@ -117,14 +144,15 @@ public class MapDataExporter {
                             } else if (pattern == FillPattern.VERTICAL) {
                                 angles.add(90);
                             } else if (pattern == FillPattern.GRID) {
-                                angles.add(0); // Horizontal
-                                angles.add(90); // Vertical
+                                angles.add(0);
+                                angles.add(90);
+                                bindPopupOnOverlay = true;
                             } else if (pattern == FillPattern.MESH) {
-                                angles.add(45); // Diagonale gauche
-                                angles.add(-45); // Diagonale droite
+                                angles.add(45);
+                                angles.add(-45);
+                                bindPopupOnOverlay = true;
                             }
 
-                            // Génération des L.StripePattern
                             for (int i = 0; i < angles.size(); i++) {
                                 String patternName = "pattern_" + polygonBaseId + "_a" + i;
                                 patternJS.append(String.format(Locale.ENGLISH,
@@ -132,70 +160,71 @@ public class MapDataExporter {
                                                 "  weight: 3,\n" +
                                                 "  spaceWeight: 3,\n" +
                                                 "  color: '%s',\n" +
-                                                "  opacity: %f,\n" + // L'opacité du motif
+                                                "  opacity: %f,\n" +
                                                 "  angle: %d\n" +
                                                 "});\n" +
                                                 "%s.addTo(map);\n",
-                                        patternName, fillColor, 1.0, angles.get(i), patternName)); // Mettre l'opacité du motif à 1.0
-                                // pour qu'il ne soit pas transparent par défaut, et contrôler via fillOpacity du polygone si besoin.
+                                        patternName, fillColor, 1.0, angles.get(i), patternName));
                             }
                         }
                     }
 
-                    // Écriture du code JS
                     if (usePattern && !angles.isEmpty()) {
-                        writer.write(patternJS.toString()); // Écrire toutes les définitions de motifs
+                        writer.write(patternJS.toString());
 
-                        // Si c'est un seul motif, on génère un seul polygone
                         if (angles.size() == 1) {
                             String polygonId = polygonBaseId;
-                            String patternRef = "pattern_" + polygonBaseId + "_a0"; // Le nom du motif unique
+                            String patternRef = "pattern_" + polygonBaseId + "_a0";
+                            String dashArrayLine = dashArray != null ? "  dashArray: " + dashArray + ",\n" : "";
 
                             writer.write(String.format(Locale.ENGLISH,
                                     "const %s = L.polygon([\n  %s\n], {\n" +
                                             "  color: \"%s\",\n" +
                                             "  weight: %f,\n" +
-                                            "  fillColor: \"%s\",\n" + // Couleur de remplissage pour les motifs simples
-                                            "  fillOpacity: %f,\n" +  // Opacité de remplissage pour les motifs simples
+                                            dashArrayLine +
+                                            "  fillColor: \"%s\",\n" +
+                                            "  fillOpacity: %f,\n" +
                                             "  fillPattern: %s\n" +
-                                            "}).addTo(map);\n", // Pas de popup ici, on le mettra sur le dernier ou un group
+                                            "}).addTo(map);\n",
                                     polygonId, coordString, color, weight, fillColor, fillOpacity, patternRef));
 
-                            // Ajouter le popup seulement si un seul polygone est créé
                             writer.write(String.format(Locale.ENGLISH, "%s.bindPopup(\"%s\");\n", polygonId, popupContent));
 
                         } else {
-                            // Si plusieurs motifs (GRID, MESH), générer plusieurs polygones superposés
                             writer.write(String.format(Locale.ENGLISH, "const polygonCoords_%s = [\n  %s\n];\n", polygonBaseId, coordString));
 
                             for (int i = 0; i < angles.size(); i++) {
-                                String polygonInstanceId = polygonBaseId + "_" + (i == 0 ? "main" : "overlay" + i); // Nommez le premier "main" pour le popup
+                                String polygonInstanceId = polygonBaseId + "_" + (i == 0 ? "main" : "overlay" + i);
                                 String patternRef = "pattern_" + polygonBaseId + "_a" + i;
+                                String dashArrayLine = dashArray != null ? "  dashArray: " + dashArray + ",\n" : "";
 
-                                // Pour les polygones superposés, le fillColor doit être transparent
-                                // et l'opacité du motif doit être gérée par le pattern ou fillOpacity à 1
                                 writer.write(String.format(Locale.ENGLISH,
                                         "const %s = L.polygon(polygonCoords_%s, {\n" +
                                                 "  color: \"%s\",\n" +
                                                 "  weight: %f,\n" +
-                                                "  fillColor: \"transparent\",\n" + // TRÈS IMPORTANT : fond transparent
-                                                "  fillOpacity: 1.0,\n" + // L'opacité du polygone doit être 1 pour que le motif soit visible
+                                                dashArrayLine +
+                                                "  fillColor: \"transparent\",\n" +
+                                                "  fillOpacity: 1.0,\n" +
                                                 "  fillPattern: %s\n" +
                                                 "}).addTo(map);\n",
                                         polygonInstanceId, polygonBaseId, color, weight, patternRef));
 
-                                // Si c'est le premier polygone, lui attacher le popup
-                                if (i != 0) {
+                                boolean isMain = (i == 0);
+                                boolean isLastOverlay = (i == angles.size() - 1);
+                                if ((bindPopupOnOverlay && isLastOverlay) || (!bindPopupOnOverlay && isMain)) {
                                     writer.write(String.format(Locale.ENGLISH, "%s.bindPopup(\"%s\");\n", polygonInstanceId, popupContent));
                                 }
                             }
                         }
+
                     } else {
-                        // Cas sans motif (NONE ou FULL)
+                        String dashArrayLine = dashArray != null ? "  dashArray: " + dashArray + ",\n" : "";
+
                         writer.write(String.format(Locale.ENGLISH,
                                 "const %s = L.polygon([\n  %s\n], {\n" +
                                         "  color: \"%s\",\n" +
                                         "  weight: %f,\n" +
+                                        dashArrayLine +
                                         "  fillColor: \"%s\",\n" +
                                         "  fillOpacity: %f\n" +
                                         "}).addTo(map).bindPopup(\"%s\");\n",
@@ -203,8 +232,9 @@ public class MapDataExporter {
                     }
 
                     if (hasAdditionalContent) {
-                        // Appliquez le toggle au premier polygone ou au polygone unique
-                        String targetPolygonId = usePattern && angles.size() > 1 ? polygonBaseId + "_main" : polygonBaseId;
+                        String targetPolygonId = (usePattern && angles.size() > 1)
+                                ? (bindPopupOnOverlay ? polygonBaseId + "_overlay" + (angles.size() - 1) : polygonBaseId + "_main")
+                                : polygonBaseId;
                         writer.write(generatePopupToggleJS(targetPolygonId));
                     }
 
@@ -303,8 +333,7 @@ public class MapDataExporter {
                     }
 
                     writer.newLine();
-                }
-                else {
+                } else {
                     System.err.println("Unsupported geometry type: " + type);
                 }
             }
