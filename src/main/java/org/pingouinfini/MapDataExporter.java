@@ -3,8 +3,10 @@ package org.pingouinfini;
 import org.pingouinfini.geojson.*;
 
 import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -13,7 +15,7 @@ public class MapDataExporter {
     static int ICON_SIZE = 36;
 
     public static void generateLeafletJSFromGeoJson(List<Feature> features, String outputPath) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath))) {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputPath), StandardCharsets.UTF_8)) {
 
             // Ajout style pour popup width
             writer.write("const style = document.createElement('style');\n");
