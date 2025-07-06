@@ -8,13 +8,14 @@ import java.util.concurrent.*;
 public class TileDownloader {
 
     private static final String GEOSERVER_URL = "10.10.10.10:8082";
-    private static final String PROJECTION = "EPSG:4326";
+    private static final String PROJECTION = "WebMercatorQuad";
     private static final String TILE_URL_TEMPLATE = String.format(
             "http://%s/geoserver/gwc/service/tms/1.0.0/%%s@%s@png/%%d/%%d/%%d.png",
             GEOSERVER_URL, PROJECTION
     );
 
     public static void downloadTiles(int zoomMin, int zoomMax, String layerId, Path outputDirectory) {
+        // FIXME: reprendre le code
 
         ExecutorService executor = Executors.newFixedThreadPool(Math.max(1, zoomMax - zoomMin + 1));
         try {

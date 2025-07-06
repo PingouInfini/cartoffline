@@ -1,7 +1,6 @@
 var map;
 var baseLayers = {};
 var overlayLayers = {};
-var currentCRS = L.CRS.EPSG4326;
 var geojsonLayer;
 var cachedLayer, osmLayer;
 var layerControl;
@@ -9,22 +8,22 @@ var validatedLayer = null;
 var userLayers = {};
 
 function initialize() {
-    initializeMap(currentCRS);
+    initializeMap();
     loadData();
     loadUserLayersFromStorage();
 }
 
-function initializeMap(crs) {
-    currentCRS = crs;
-
+function initializeMap() {
     cachedLayer = L.tileLayer('cache-carto/{z}/{x}/{y}.png', {
         maxZoom: 19,
         tms: true,
+        noWrap: true,
         attribution: 'Cache local'
     });
 
     osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
+        noWrap: true,
         attribution: '© OpenStreetMap contributors'
     });
 
@@ -39,55 +38,17 @@ function initializeMap(crs) {
     }
 
     map = L.map('map', {
-        crs: crs,
-        layers: [crs === L.CRS.EPSG4326 ? cachedLayer : osmLayer]
+        crs: L.CRS.EPSG3857,
+        layers: [cachedLayer]
     }).setView([48.80558772813145, 2.1176943425396346], 12);
 
     if (layerControl) map.removeControl(layerControl);
-	
-	loadUserLayersFromStorage();
+
+    loadUserLayersFromStorage();
 
     layerControl = L.control.layers(baseLayers, overlayLayers, { collapsed: true }).addTo(map);
     observeLayerControlExpand();
-
-    map.on('baselayerchange', function (e) {
-        if (e.name === "Cache local" && currentCRS !== L.CRS.EPSG4326) {
-            recreateMap(L.CRS.EPSG4326);
-        } else if (e.name !== "Cache local" && currentCRS !== L.CRS.EPSG3857) {
-            recreateMap(L.CRS.EPSG3857);
-        }
-    });
 }
-
-function recreateMap(newCrs) {
-    // 1. Sauvegarde la baseLayer active
-    let activeBaseLayerName = null;
-    for (const [name, layer] of Object.entries(baseLayers)) {
-        if (map.hasLayer(layer)) {
-            activeBaseLayerName = name;
-            break;
-        }
-    }
-
-    const dataVisible = geojsonLayer && map.hasLayer(geojsonLayer);
-
-    // 2. Recrée la carte
-    initializeMap(newCrs);
-
-    // 3. Recharge les données
-    loadData();
-
-    // 4. Restaure la couche active si elle existe toujours
-    if (activeBaseLayerName && baseLayers[activeBaseLayerName]) {
-        map.addLayer(baseLayers[activeBaseLayerName]);
-    }
-
-    // 5. Restaure les données visibles
-    if (dataVisible && geojsonLayer) {
-        map.addLayer(geojsonLayer);
-    }
-}
-
 
 function loadData() {
     const script = document.createElement('script');
@@ -105,47 +66,12 @@ function openAddLayerForm() {
     document.getElementById('validateLayerBtn').disabled = true;
     validatedLayer = null;
 }
+
 function cancelAddLayer() {
     document.getElementById('add-layer-form').style.display = 'none';
     document.getElementById('layerName').value = '';
     document.getElementById('layerURL').value = '';
     validatedLayer = null;
-}
-function testLayer2() {
-    const type = document.getElementById('layerType').value;
-    const url = document.getElementById('layerURL').value;
-    if (!url) return;
-
-    let layer;
-    let validated = false;
-
-    const onSuccess = () => {
-        if (!validated) {
-            validated = true;
-            validatedLayer = layer;
-            document.getElementById('validateLayerBtn').disabled = false;
-        }
-    };
-
-    if (type === 'tile') {
-        layer = L.tileLayer(url, { maxZoom: 19 });
-        layer.on('tileload', onSuccess);
-    } else {
-        layer = L.tileLayer.wms(url, {
-            layers: '',
-            format: 'image/png',
-            transparent: true
-        });
-        layer.on('tileload', onSuccess);
-    }
-
-    // layer.on('tileerror', () => {
-    //     validatedLayer = null;
-    //     document.getElementById('validateLayerBtn').disabled = true;
-    // });
-
-    layer.addTo(map);
-    setTimeout(() => map.removeLayer(layer), 2000);
 }
 
 function testLayer() {
@@ -165,28 +91,12 @@ function testLayer() {
         });
     }
 
-    //testLayer.on('tileerror', () => {
-    //    if (!tileTested) {
-    //        alert("Erreur : la couche n'a pas pu être chargée.");
-    //        validatedLayer = null;
-    //    }
-    //});
-	//
-    //testLayer.on('tileload', () => {
-    //    if (!tileTested) {
-    //        validatedLayer = testLayer;
-    //        document.getElementById('validateLayerBtn').disabled = false;
-    //        tileTested = true;
-    //        setTimeout(() => map.removeLayer(testLayer), 500);
-    //    }
-    //});
-	
-	if (!tileTested) {
-            validatedLayer = testLayer;
-            document.getElementById('validateLayerBtn').disabled = false;
-            tileTested = true;
-            setTimeout(() => map.removeLayer(testLayer), 500);
-        }
+    if (!tileTested) {
+        validatedLayer = testLayer;
+        document.getElementById('validateLayerBtn').disabled = false;
+        tileTested = true;
+        setTimeout(() => map.removeLayer(testLayer), 500);
+    }
 
     testLayer.addTo(map);
 }
@@ -281,7 +191,7 @@ function observeLayerControlExpand() {
         const isExpanded = control.classList.contains("leaflet-control-layers-expanded");
         const addBtn = control.querySelector("span[style*='➕ add']");
         if (addBtn) {
-			addBtn.style.display = isExpanded ? "inline" : "none";
+            addBtn.style.display = isExpanded ? "inline" : "none";
         }
     });
     observer.observe(control, { attributes: true, attributeFilter: ['class'] });

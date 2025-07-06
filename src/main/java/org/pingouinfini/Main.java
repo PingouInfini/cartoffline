@@ -287,7 +287,7 @@ public class Main {
         });
 
         // Etape 4 : export de tuiles
-        //TileDownloader.downloadTiles(0, 5, "KORTANA:s_5da0bf5419ef73d98541518e1fd64e51__255a7c81-bdfc-4e99-998d-09f2afbcc120", Paths.get("outputDirectory"));
+//        TileDownloader.downloadTiles(0, 15, "MYWORKSPACE:aggregat_0115c6ec-54d1-43af-a727-8f8c17a9d7bd", Paths.get("outputDirectory"));
 
         // Export GeoJSON
 //        GeoJsonExporter.exportGeoJson(points, polygons, "export.geojson");
