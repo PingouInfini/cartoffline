@@ -269,6 +269,10 @@ public class Main {
         // === EXPORT JS ===
         MapDataExporter.generateLeafletJSFromGeoJson(features, outputPath + "/data/data.js");
 
+        // === KML ===
+        MapDataExporter.addKmlToLeafletMap(Paths.get("src/main/resources/samples/kml/balade-a-versailles.kml"), outputPath + "/data/data.js");
+        MapDataExporter.addKmlToLeafletMap(Paths.get("src/main/resources/samples/kml/arrondissements-paris.kml"), outputPath + "/data/data.js");
+
         // Etape 3 : Stocker des tuiles (à remplacer par des appels multithread à geoserver sur un layer)
         Path sourceDir = Paths.get("src/main/resources/samples/tiles");
         Path targetDir = outputPath.resolve("cache-carto");

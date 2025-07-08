@@ -6,7 +6,9 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -72,6 +74,37 @@ public class MapDataExporter {
             System.out.println("Fichier JS généré avec succès : " + outputPath);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+
+    public static void addKmlToLeafletMap(Path kmlFilePath, String outputPath) throws IOException {
+        byte[] bytes = Files.readAllBytes(kmlFilePath);
+        String content = new String(bytes, StandardCharsets.UTF_8);
+        addKmlToLeafletMap(content, outputPath);
+    }
+
+    public static void addKmlToLeafletMap(String kmlContent, String outputPath) throws IOException {
+        // Échapper les simples quotes
+        String escapedContent = kmlContent.replace("'", "\\'");
+
+        // Supprimer tous les sauts de ligne (Unix \n, Windows \r\n)
+        escapedContent = escapedContent.replaceAll("\\r?\\n", "");
+
+        // Générer un UUID JS-compatible
+        String uuid = UUID.randomUUID().toString().replace("-", "_");
+
+        StringBuilder jsCode = new StringBuilder();
+        jsCode.append("\n");
+        jsCode.append("const parser_").append(uuid).append(" = new DOMParser();\n");
+        jsCode.append("const kml_").append(uuid).append(" = parser_").append(uuid)
+                .append(".parseFromString('").append(escapedContent).append("', 'text/xml');\n");
+        jsCode.append("const track_").append(uuid).append(" = new L.KML(kml_").append(uuid).append(");\n");
+        jsCode.append("map.addLayer(track_").append(uuid).append(");\n");
+
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputPath), StandardCharsets.UTF_8,
+                StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
+            writer.write(jsCode.toString());
         }
     }
 
