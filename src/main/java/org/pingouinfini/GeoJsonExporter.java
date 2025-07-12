@@ -7,14 +7,13 @@ import org.geotools.geojson.feature.FeatureJSON;
 import org.locationtech.jts.geom.*;
 import org.opengis.feature.simple.SimpleFeature;
 import org.opengis.feature.simple.SimpleFeatureType;
+import org.pingouinfini.geojson.Coordonnee;
+import org.pingouinfini.geojson.Point;
+import org.pingouinfini.geojson.Polygon;
 
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-
-import org.pingouinfini.geojson.Point;
-import org.pingouinfini.geojson.Polygon;
-import org.pingouinfini.geojson.Coordonnee;
 
 public class GeoJsonExporter {
 
