@@ -14,15 +14,8 @@ import java.util.stream.Collectors;
 
 public class MapDataExporter {
 
-    static int ICON_SIZE = 36;
-
     public static void generateLeafletJSFromGeoJson(List<Feature> features, String outputPath) {
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputPath), StandardCharsets.UTF_8)) {
-
-            // Ajout style pour popup width
-            writer.write("const style = document.createElement('style');\n");
-            writer.write("style.innerHTML = `.leaflet-popup-content { width: 200px !important; }`;\n");
-            writer.write("document.head.appendChild(style);\n\n");
 
             for (Feature feature : features) {
                 Geometry geometry = feature.getGeometry();
@@ -61,19 +54,24 @@ public class MapDataExporter {
 
                 popupContent.append("</div>");
 
-                if (type.equals("Point")) {
-                    managedFeaturePoint(geometry, writer, icon, popupContent, hasAdditionalContent);
-                } else if (type.equals("Polygon")) {
-                    managedFeaturePolygon(feature, geometry, writer, popupContent, hasAdditionalContent);
-                } else if (type.equals("Line")) {
-                    managedFeatureLine(feature, geometry, writer, popupContent);
-                } else {
-                    System.err.println("Unsupported geometry type: " + type);
+                switch (type) {
+                    case "Point":
+                        managedFeaturePoint(geometry, writer, icon, popupContent, hasAdditionalContent);
+                        break;
+                    case "Polygon":
+                        managedFeaturePolygon(feature, geometry, writer, popupContent, hasAdditionalContent);
+                        break;
+                    case "Line":
+                        managedFeatureLine(feature, geometry, writer, popupContent);
+                        break;
+                    default:
+                        System.err.println("Unsupported geometry type: " + type);
+                        break;
                 }
             }
             System.out.println("Fichier JS généré avec succès : " + outputPath);
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println(Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -114,8 +112,11 @@ public class MapDataExporter {
         double lon = coords.get(0);
         String markerId = String.format("marker_%s", geometry.hashCode());
         writer.write(String.format(Locale.ENGLISH,
-                "const %s = L.marker([%f, %f],{icon:L.icon({iconUrl:\"images/marker/%s\",iconSize:[%d,%d]})}).addTo(map).bindPopup(\"%s\");\n",
-                markerId, lat, lon, icon, ICON_SIZE, ICON_SIZE, popupContent));
+                "const %s = L.marker([%f, %f],{icon:createIcon(\"images/marker/%s\", getIconSize(map.getZoom()))}).addTo(map).bindPopup(\"%s\");\n",
+                markerId, lat, lon, icon, popupContent));
+        writer.write(String.format(Locale.ENGLISH,
+                "mapMarkers.push({leafletMarker: %s, iconUrl: \"images/marker/%s\"});\n",
+                markerId, icon));
         if (hasAdditionalContent) {
             writer.write(generatePopupToggleJS(markerId));
         }
@@ -223,7 +224,6 @@ public class MapDataExporter {
             writer.write(patternJS.toString());
 
             if (angles.size() == 1) {
-                String polygonId = polygonBaseId;
                 String patternRef = "pattern_" + polygonBaseId + "_a0";
                 String dashArrayLine = dashArray != null ? "  dashArray: " + dashArray + ",\n" : "";
 
@@ -236,9 +236,9 @@ public class MapDataExporter {
                                 "  fillOpacity: %f,\n" +
                                 "  fillPattern: %s\n" +
                                 "}).addTo(map);\n",
-                        polygonId, coordString, color, weight, fillColor, fillOpacity, patternRef));
+                        polygonBaseId, coordString, color, weight, fillColor, fillOpacity, patternRef));
 
-                writer.write(String.format(Locale.ENGLISH, "%s.bindPopup(\"%s\");\n", polygonId, popupContent));
+                writer.write(String.format(Locale.ENGLISH, "%s.bindPopup(\"%s\");\n", polygonBaseId, popupContent));
 
             } else {
                 writer.write(String.format(Locale.ENGLISH, "const polygonCoords_%s = [\n  %s\n];\n", polygonBaseId, coordString));
