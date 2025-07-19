@@ -14,9 +14,10 @@ public class Polygon {
     private Double fillOpacity;
     private String icon;
     private String filename;
+    private DisplayLayer displayLayer;
 
     public Polygon build() {
-        return new Polygon(coordinateArray, name, description, color, lineStyle, weight, fillPattern, fillColor, fillOpacity, icon, filename);
+        return new Polygon(coordinateArray, name, description, color, lineStyle, weight, fillPattern, fillColor, fillOpacity, icon, filename, displayLayer);
     }
 
     public Polygon(List<Coordonnee> coordinateArray) {
@@ -29,7 +30,7 @@ public class Polygon {
         this.description = description;
     }
 
-    public Polygon(List<Coordonnee> coordinateArray, String name, String description, String color, LineStyle lineStyle, Double weight, FillPattern fillPattern, String fillColor, Double fillOpacity, String icon, String filename) {
+    public Polygon(List<Coordonnee> coordinateArray, String name, String description, String color, LineStyle lineStyle, Double weight, FillPattern fillPattern, String fillColor, Double fillOpacity, String icon, String filename, DisplayLayer displayLayer) {
         this.coordinateArray = coordinateArray;
         this.name = name;
         this.description = description;
@@ -41,6 +42,7 @@ public class Polygon {
         this.fillOpacity = fillOpacity;
         this.icon = icon;
         this.filename = filename;
+        this.displayLayer = displayLayer;
     }
 
     public Polygon name(String name) {
@@ -98,6 +100,11 @@ public class Polygon {
         return this;
     }
 
+    public Polygon displayLayer(DisplayLayer displayLayer) {
+        this.displayLayer = displayLayer;
+        return this;
+    }
+
     public List<Coordonnee> getCoordinateArray() {
         return coordinateArray;
     }
@@ -140,6 +147,10 @@ public class Polygon {
 
     public String getFilename() {
         return filename;
+    }
+
+    public DisplayLayer getDisplayLayer() {
+        return displayLayer;
     }
 }
 

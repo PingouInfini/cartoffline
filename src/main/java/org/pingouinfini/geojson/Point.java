@@ -7,9 +7,10 @@ public class Point {
     private String description;
     private String icon;
     private String filename;
+    private DisplayLayer displayLayer;
 
     public Point build() {
-        return new Point(latitude, longitude, name, description, icon, filename);
+        return new Point(latitude, longitude, name, description, icon, filename, displayLayer);
     }
 
     public Point(Double latitude, Double longitude) {
@@ -24,13 +25,14 @@ public class Point {
         this.description = description;
     }
 
-    public Point(Double latitude, Double longitude, String name, String description, String icon, String filename) {
+    public Point(Double latitude, Double longitude, String name, String description, String icon, String filename, DisplayLayer displayLayer) {
         this.latitude = latitude;
         this.longitude = longitude;
         this.name = name;
         this.description = description;
         this.icon = icon;
         this.filename = filename;
+        this.displayLayer = displayLayer;
     }
 
     public Point name(String name) {
@@ -50,6 +52,11 @@ public class Point {
 
     public Point filename(String filename) {
         this.filename = filename;
+        return this;
+    }
+
+    public Point displayLayer(DisplayLayer displayLayer) {
+        this.displayLayer = displayLayer;
         return this;
     }
 
@@ -75,5 +82,9 @@ public class Point {
 
     public String getFilename() {
         return filename;
+    }
+
+    public DisplayLayer getDisplayLayer() {
+        return displayLayer;
     }
 }

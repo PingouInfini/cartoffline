@@ -46,7 +46,7 @@ public class Main {
         ExportGenerator.saveIcon(icon1, outputPath, fileNameIcone1);
 
         Point p1 = new Point(48.79795482082478, 2.115781744016367, "Pièce d'Eau des Suisses", "La pièce d'eau des Suisses est un bassin faisant partie du parc du château de Versailles, construit entre 1679 et 1682. Elle doit son nom au fait d'avoir été creusée par un régiment de Gardes suisses. Elle a été créée pour drainer le potager du Roi.",
-                fileNameIcone1, fileName1);
+                fileNameIcone1, fileName1, DisplayLayer.OBJET);
         points.add(p1);
         features.add(ExportGenerator.createPointFeature(p1));
 
@@ -60,7 +60,7 @@ public class Main {
         features.add(ExportGenerator.createPointFeature(p2));
 
         // === POINT 3 ===
-        Point p3 = new Point(48.80425807017104, 2.0922632311615756).name("La Lanterne").build();
+        Point p3 = new Point(48.80425807017104, 2.0922632311615756).name("La Lanterne").displayLayer(DisplayLayer.OBJET).build();
         points.add(p3);
         features.add(ExportGenerator.createPointFeature(p3));
 
@@ -69,7 +69,7 @@ public class Main {
         String fileName2 = Paths.get(resourcePath2).getFileName().toString();
         Image image2 = ImageIO.read(Objects.requireNonNull(Main.class.getResourceAsStream(resourcePath2)));
         ExportGenerator.saveImage(image2, outputPath, fileName2);
-        Point p4 = new Point(48.80748446195294, 2.110689627619864).description("Chef-d’œuvre de la sculpture française du XVIIe siècle, Apollon sur son char appartient aux premières grandes commandes pour les jardins de Versailles.").filename(fileName2).build();
+        Point p4 = new Point(48.80748446195294, 2.110689627619864).description("Chef-d’œuvre de la sculpture française du XVIIe siècle, Apollon sur son char appartient aux premières grandes commandes pour les jardins de Versailles.").filename(fileName2).displayLayer(DisplayLayer.OBJET).build();
         points.add(p4);
         features.add(ExportGenerator.createPointFeature(p4));
 
@@ -78,7 +78,7 @@ public class Main {
         String fileName3 = Paths.get(resourcePath3).getFileName().toString();
         Image image3 = ImageIO.read(Objects.requireNonNull(Main.class.getResourceAsStream(resourcePath3)));
         ExportGenerator.saveImage(image3, outputPath, fileName3);
-        Point p5 = new Point(48.819594882175274, 2.113171086205837).name("Hameau de la Reine").description("Le hameau de la Reine est une dépendance du Petit Trianon située dans le parc du château de Versailles.").filename(fileName3).build();
+        Point p5 = new Point(48.819594882175274, 2.113171086205837).name("Hameau de la Reine").description("Le hameau de la Reine est une dépendance du Petit Trianon située dans le parc du château de Versailles.").filename(fileName3).displayLayer(DisplayLayer.OBJET).build();
         points.add(p5);
         features.add(ExportGenerator.createPointFeature(p5));
 
@@ -103,7 +103,7 @@ public class Main {
                 new Coordonnee(48.81095358585557, 2.099595446529426)
         );
         Polygon poly1 = new Polygon(polygonRing1, "Grand Canal de Versailles", "Plus grand bassin du parc du château de Versailles. En forme de croix, il fut construit entre 1667 et 1679, à l'instigation de Le Nôtre.")
-                .borderColor("darkblue").filename(fileName4).fillPattern(FillPattern.NONE).weight(3.0).lineStyle(LineStyle.DASH);
+                .borderColor("darkblue").filename(fileName4).fillPattern(FillPattern.NONE).weight(3.0).lineStyle(LineStyle.DASH).displayLayer(DisplayLayer.OBJET);
         polygons.add(poly1);
         features.add(ExportGenerator.createPolygonFeature(poly1));
 
@@ -129,7 +129,7 @@ public class Main {
         );
 
         Polygon poly3 = new Polygon(polygonRing3).name("INRAE").fillPattern(FillPattern.FULL).lineStyle(LineStyle.DOT)
-                .fillColor("cyan").fillOpacity(0.8);
+                .fillColor("cyan").fillOpacity(0.8).displayLayer(DisplayLayer.OBJET);
         features.add(ExportGenerator.createPolygonFeature(poly3));
 
         // === POLYGON 4 ===
@@ -141,7 +141,7 @@ public class Main {
         );
 
         Polygon poly4 = new Polygon(polygonRing4).name("STAT").fillPattern(FillPattern.DIAGONAL_LEFT).fillColor("RED")
-                .lineStyle(LineStyle.MIXED).weight(3.0).fillOpacity(0.8);
+                .lineStyle(LineStyle.MIXED).weight(3.0).fillOpacity(0.8).displayLayer(DisplayLayer.DESSIN);
         features.add(ExportGenerator.createPolygonFeature(poly4));
 
         // === POLYGON 5 ===
@@ -153,7 +153,7 @@ public class Main {
         );
 
         Polygon poly5 = new Polygon(polygonRing5).name("Parly2").fillPattern(FillPattern.DIAGONAL_RIGHT)
-                .lineStyle(LineStyle.MIXED_TWO_POINT).weight(2.0).fillColor("YELLOW").fillOpacity(0.8);
+                .lineStyle(LineStyle.MIXED_TWO_POINT).weight(2.0).fillColor("YELLOW").fillOpacity(0.8).displayLayer(DisplayLayer.DESSIN);
         features.add(ExportGenerator.createPolygonFeature(poly5));
 
         // === POLYGON 6 ===
@@ -165,7 +165,7 @@ public class Main {
         );
 
         Polygon poly6 = new Polygon(polygonRing6).name("Mairie Versailles").fillPattern(FillPattern.GRID)
-                .lineStyle(LineStyle.DOT_LONG).weight(2.0).fillColor("GREY").fillOpacity(1.0);
+                .lineStyle(LineStyle.DOT_LONG).weight(2.0).fillColor("GREY").fillOpacity(1.0).displayLayer(DisplayLayer.DESSIN);
         features.add(ExportGenerator.createPolygonFeature(poly6));
 
         // === POLYGON 7 ===
@@ -177,7 +177,7 @@ public class Main {
         );
 
         Polygon poly7 = new Polygon(polygonRing7).name("Gare des Chantiers").fillPattern(FillPattern.MESH)
-                .fillColor("Lime").fillOpacity(1.0);
+                .fillColor("Lime").fillOpacity(1.0).displayLayer(DisplayLayer.DESSIN);
         features.add(ExportGenerator.createPolygonFeature(poly7));
 
         // === POLYGON 8 ===
@@ -189,7 +189,7 @@ public class Main {
         );
 
         Polygon poly8 = new Polygon(polygonRing8).name("Chateau").fillPattern(FillPattern.HORIZONTAL)
-                .fillColor("ORANGE").fillOpacity(1.0);
+                .fillColor("ORANGE").fillOpacity(1.0).displayLayer(DisplayLayer.DESSIN);
         features.add(ExportGenerator.createPolygonFeature(poly8));
 
         // === POLYGON 9 ===
@@ -201,7 +201,7 @@ public class Main {
         );
 
         Polygon poly9 = new Polygon(polygonRing9).name("Préfecture").fillPattern(FillPattern.VERTICAL)
-                .fillColor("Fuchsia").fillOpacity(1.0);
+                .fillColor("Fuchsia").fillOpacity(1.0).displayLayer(DisplayLayer.DESSIN);
         features.add(ExportGenerator.createPolygonFeature(poly9));
 
         // === LINE 1 ===
@@ -213,7 +213,7 @@ public class Main {
                 new Coordonnee(48.84804352590949, 2.225313599091011),
                 new Coordonnee(48.848488787524566, 2.2530594957312995)
         );
-        Line line1 = new Line(lineCoord1).name("A13").lineStyle(LineStyle.CONTINUOUS);
+        Line line1 = new Line(lineCoord1).name("A13").lineStyle(LineStyle.CONTINUOUS).displayLayer(DisplayLayer.OBJET);
         features.add(ExportGenerator.createLineFeature(line1));
 
         // === LINE 2 ===
@@ -238,7 +238,7 @@ public class Main {
                 new Coordonnee(48.86599277494265, 2.2285777689426474),
                 new Coordonnee(48.89596339507701, 2.2645170013909723)
         );
-        Line line3 = new Line(lineCoord3).name("SEINE").lineStyle(LineStyle.DASH).color("orange").arrowStyle(ArrowStyle.END);
+        Line line3 = new Line(lineCoord3).name("SEINE").lineStyle(LineStyle.DASH).color("orange").arrowStyle(ArrowStyle.END).displayLayer(DisplayLayer.DESSIN);
         features.add(ExportGenerator.createLineFeature(line3));
 
         // === LINE 4 ===
@@ -246,7 +246,7 @@ public class Main {
                 new Coordonnee(48.857809062435074, 2.2952909083071096),
                 new Coordonnee(48.85283940460138, 2.3029727550927612)
         );
-        Line line4 = new Line(lineCoord4).name("Champ-de-Mars").lineStyle(LineStyle.MIXED).color("cyan").arrowStyle(ArrowStyle.BOTH);
+        Line line4 = new Line(lineCoord4).name("Champ-de-Mars").lineStyle(LineStyle.MIXED).color("cyan").arrowStyle(ArrowStyle.BOTH).displayLayer(DisplayLayer.DESSIN);
         features.add(ExportGenerator.createLineFeature(line4));
 
         // === LINE 5 ===
@@ -254,7 +254,7 @@ public class Main {
                 new Coordonnee(48.87380141404359, 2.2955415867919147),
                 new Coordonnee(48.86572140218105, 2.3207196324567585)
         );
-        Line line5 = new Line(lineCoord5).name("Champs-Élysées (direction Arc de Triomphe) ").lineStyle(LineStyle.MIXED_TWO_POINT).color("purple").arrowStyle(ArrowStyle.START);
+        Line line5 = new Line(lineCoord5).name("Champs-Élysées (direction Arc de Triomphe) ").lineStyle(LineStyle.MIXED_TWO_POINT).color("purple").arrowStyle(ArrowStyle.START).displayLayer(DisplayLayer.DESSIN);
         features.add(ExportGenerator.createLineFeature(line5));
 
         // === LINE 6 ===
@@ -266,7 +266,7 @@ public class Main {
                 new Coordonnee(48.8033207925206, 2.234514131049336),
                 new Coordonnee(48.81703348818656, 2.249518488759423)
         );
-        Line line6 = new Line(lineCoord6).name("RER C").lineStyle(LineStyle.DOT_LONG).color("yellow").arrowStyle(ArrowStyle.NONE);
+        Line line6 = new Line(lineCoord6).name("RER C").lineStyle(LineStyle.DOT_LONG).color("yellow").arrowStyle(ArrowStyle.NONE).displayLayer(DisplayLayer.DESSIN);
         features.add(ExportGenerator.createLineFeature(line6));
 
         // === EXPORT JS ===

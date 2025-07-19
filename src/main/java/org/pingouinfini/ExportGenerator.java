@@ -66,6 +66,7 @@ public class ExportGenerator {
         Optional.ofNullable(point.getDescription()).ifPresent(description -> pointProps.put("description", description));
         Optional.ofNullable(point.getIcon()).ifPresent(icon -> pointProps.put("icon", icon));
         Optional.ofNullable(point.getFilename()).ifPresent(imageFilename -> pointProps.put("imageFilename", imageFilename));
+        Optional.ofNullable(point.getDisplayLayer()).ifPresent(displayLayer -> pointProps.put("displayLayer", displayLayer));
 
         Geometry pointGeometry = new Geometry("Point", pointCoords);
 
@@ -85,6 +86,7 @@ public class ExportGenerator {
         Optional.ofNullable(polygon.getFillColor()).ifPresent(fillColor -> polygonProps.put("fillColor", fillColor));
         Optional.ofNullable(polygon.getFillOpacity()).ifPresent(fillOpacity -> polygonProps.put("fillOpacity", fillOpacity));
         Optional.ofNullable(polygon.getFilename()).ifPresent(imageFilename -> polygonProps.put("imageFilename", imageFilename));
+        Optional.ofNullable(polygon.getDisplayLayer()).ifPresent(displayLayer -> polygonProps.put("displayLayer", displayLayer));
 
         Geometry polygonGeometry = new Geometry("Polygon", polygonCoords);
         return new Feature(polygonGeometry, polygonProps);
@@ -98,6 +100,7 @@ public class ExportGenerator {
         Optional.ofNullable(line.getLineStyle()).ifPresent(lineStyle -> lineProps.put("lineStyle", lineStyle));
         Optional.ofNullable(line.getWeight()).ifPresent(weight -> lineProps.put("weight", weight));
         Optional.ofNullable(line.getArrowStyle()).ifPresent(arrowStyle -> lineProps.put("arrowStyle", arrowStyle));
+        Optional.ofNullable(line.getDisplayLayer()).ifPresent(displayLayer -> lineProps.put("displayLayer", displayLayer));
 
         Geometry lineGeometry = new Geometry("Line", lineCoords);
         return new Feature(lineGeometry, lineProps);

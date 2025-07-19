@@ -14,6 +14,11 @@ import java.util.stream.Collectors;
 
 public class MapDataExporter {
 
+    private static String POINT_EMOJI = "\uD83D\uDCCD";
+    private static String POLYGON_EMOJI = " \u2B1F ";
+    private static String LINE_EMOJI = "\u303D\uFE0F";
+    private static String KML_EMOJI = "\uD83D\uDDFA\uFE0F";
+
     public static void generateLeafletJSFromGeoJson(List<Feature> features, String outputPath) {
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputPath), StandardCharsets.UTF_8)) {
 
@@ -56,7 +61,7 @@ public class MapDataExporter {
 
                 switch (type) {
                     case "Point":
-                        managedFeaturePoint(geometry, writer, icon, popupContent, hasAdditionalContent);
+                        managedFeaturePoint(feature, geometry, writer, name, icon, popupContent, hasAdditionalContent);
                         break;
                     case "Polygon":
                         managedFeaturePolygon(feature, geometry, writer, popupContent, hasAdditionalContent);
@@ -79,10 +84,10 @@ public class MapDataExporter {
     public static void addKmlToLeafletMap(Path kmlFilePath, String outputPath) throws IOException {
         byte[] bytes = Files.readAllBytes(kmlFilePath);
         String content = new String(bytes, StandardCharsets.UTF_8);
-        addKmlToLeafletMap(content, outputPath);
+        addKmlToLeafletMap(content, outputPath, kmlFilePath.getFileName().toString(), DisplayLayer.KML);
     }
 
-    public static void addKmlToLeafletMap(String kmlContent, String outputPath) throws IOException {
+    public static void addKmlToLeafletMap(String kmlContent, String outputPath, String name, DisplayLayer kmlDisplayLayer) throws IOException {
         // Échapper les simples quotes
         String escapedContent = kmlContent.replace("'", "\\'");
 
@@ -92,13 +97,20 @@ public class MapDataExporter {
         // Générer un UUID JS-compatible
         String uuid = UUID.randomUUID().toString().replace("-", "_");
 
+        // Nom par défaut si null ou vide
+        if (name == null || name.isEmpty()) {
+            name = "kml_" + uuid;
+        }
+
         StringBuilder jsCode = new StringBuilder();
         jsCode.append("\n");
         jsCode.append("const parser_").append(uuid).append(" = new DOMParser();\n");
         jsCode.append("const kml_").append(uuid).append(" = parser_").append(uuid)
                 .append(".parseFromString('").append(escapedContent).append("', 'text/xml');\n");
-        jsCode.append("const track_").append(uuid).append(" = new L.KML(kml_").append(uuid).append(");\n");
-        jsCode.append("kmlGroup.addLayer(track_").append(uuid).append(");\n");
+        jsCode.append("const kmlLayer_").append(uuid).append(" = new L.KML(kml_").append(uuid).append(");\n");
+        jsCode.append("kmlLayer_").append(uuid).append(".addTo(map);\n");
+        jsCode.append(kmlDisplayLayer.getLabel()).append(".children.push({ label: \"").append(KML_EMOJI)
+                .append(truncateLabel(escape(name))).append("\", layer: kmlLayer_").append(uuid).append(" });\n");
 
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputPath), StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
@@ -106,22 +118,55 @@ public class MapDataExporter {
         }
     }
 
-    private static void managedFeaturePoint(Geometry geometry, BufferedWriter writer, String icon, StringBuilder popupContent, boolean hasAdditionalContent) throws IOException {
+
+    private static void managedFeaturePoint(
+            Feature feature,
+            Geometry geometry,
+            BufferedWriter writer,
+            String name,
+            String icon,
+            StringBuilder popupContent,
+            boolean hasAdditionalContent) throws IOException {
+
         List<Double> coords = (List<Double>) geometry.getCoordinates();
         double lat = coords.get(1);
         double lon = coords.get(0);
         String markerId = String.format("marker_%s", geometry.hashCode());
+
+        // Crée le marker
         writer.write(String.format(Locale.ENGLISH,
-                "const %s = L.marker([%f, %f],{icon:createIcon(\"images/marker/%s\", getIconSize(map.getZoom()))}).addTo(ponctuelGroup).bindPopup(\"%s\");\n",
+                "const %s = L.marker([%f, %f], {" +
+                        "icon: createIcon(\"images/marker/%s\", getIconSize(map.getZoom()))" +
+                        "}).bindPopup(\"%s\");\n",
                 markerId, lat, lon, icon, popupContent));
+
+        // L'ajoute à la carte directement
         writer.write(String.format(Locale.ENGLISH,
-                "mapMarkers.push({leafletMarker: %s, iconUrl: \"images/marker/%s\"});\n",
+                "%s.addTo(map);\n", markerId));
+
+        // L'ajoute dans le contrôle de couches arborescent sous "Ponctuel"
+        DisplayLayer displayLayer = (DisplayLayer) feature.getProperties().getOrDefault("displayLayer", DisplayLayer.AUTRE);
+        writer.write(String.format(Locale.ENGLISH,
+                "%s.children.push({ label: \"%s%s\", layer: %s });\n",
+                displayLayer.getLabel(),
+                POINT_EMOJI,
+                truncateLabel(escape(name != null && !name.equalsIgnoreCase("null") && !name.isEmpty() ? name : markerId)), // label visible
+                markerId // identifiant technique du marker
+        ));
+
+        // Enregistre le marker
+        writer.write(String.format(Locale.ENGLISH,
+                "mapMarkers.push({ leafletMarker: %s, iconUrl: \"images/marker/%s\" });\n",
                 markerId, icon));
+
+        // Contenu additionnel ?
         if (hasAdditionalContent) {
             writer.write(generatePopupToggleJS(markerId));
         }
+
         writer.newLine();
     }
+
 
     private static void managedFeaturePolygon(Feature feature, Geometry geometry, BufferedWriter writer, StringBuilder popupContent, boolean hasAdditionalContent) throws IOException {
         List<List<Coordonnee>> coords = (List<List<Coordonnee>>) geometry.getCoordinates();
@@ -170,7 +215,6 @@ public class MapDataExporter {
 
         Object patternObj = feature.getProperties().get("fillPattern");
         String polygonBaseId = "polygon_" + geometry.hashCode();
-
         boolean usePattern = false;
         boolean bindPopupOnOverlay = false;
         List<Integer> angles = new ArrayList<>();
@@ -181,9 +225,7 @@ public class MapDataExporter {
 
             if (pattern == FillPattern.NONE) {
                 fillOpacity = 0.0;
-            } else if (pattern == FillPattern.FULL) {
-                // rien
-            } else {
+            } else if (pattern != FillPattern.FULL) {
                 usePattern = true;
 
                 if (pattern == FillPattern.DIAGONAL_LEFT) {
@@ -211,14 +253,17 @@ public class MapDataExporter {
                                     "  weight: 3,\n" +
                                     "  spaceWeight: 3,\n" +
                                     "  color: '%s',\n" +
-                                    "  opacity: %f,\n" +
+                                    "  opacity: 1.0,\n" +
                                     "  angle: %d\n" +
                                     "});\n" +
                                     "%s.addTo(map);\n",
-                            patternName, fillColor, 1.0, angles.get(i), patternName));
+                            patternName, fillColor, angles.get(i), patternName));
                 }
             }
         }
+
+        DisplayLayer displayLayer = (DisplayLayer) feature.getProperties().getOrDefault("displayLayer", DisplayLayer.AUTRE);
+        String name = Optional.ofNullable((String) feature.getProperties().get("name")).orElse(polygonBaseId);
 
         if (usePattern && !angles.isEmpty()) {
             writer.write(patternJS.toString());
@@ -235,14 +280,17 @@ public class MapDataExporter {
                                 "  fillColor: \"%s\",\n" +
                                 "  fillOpacity: %f,\n" +
                                 "  fillPattern: %s\n" +
-                                "}).addTo(surfaciqueGroup);\n",
-                        polygonBaseId, coordString, color, weight, fillColor, fillOpacity, patternRef));
+                                "}).addTo(map).bindPopup(\"%s\");\n",
+                        polygonBaseId, coordString, color, weight, fillColor, fillOpacity, patternRef, popupContent));
 
-                writer.write(String.format(Locale.ENGLISH, "%s.bindPopup(\"%s\");\n", polygonBaseId, popupContent));
+                writer.write(String.format("%s.children.push({ label: \"%s%s\", layer: %s });\n",
+                        displayLayer.getLabel(), POLYGON_EMOJI, truncateLabel(escape(name)), polygonBaseId));
+                if (hasAdditionalContent) {
+                    writer.write(generatePopupToggleJS(polygonBaseId));
+                }
 
             } else {
-                writer.write(String.format(Locale.ENGLISH, "const polygonCoords_%s = [\n  %s\n];\n", polygonBaseId, coordString));
-
+                writer.write(String.format("const polygonCoords_%s = [\n  %s\n];\n", polygonBaseId, coordString));
                 for (int i = 0; i < angles.size(); i++) {
                     String polygonInstanceId = polygonBaseId + "_" + (i == 0 ? "main" : "overlay" + i);
                     String patternRef = "pattern_" + polygonBaseId + "_a" + i;
@@ -256,13 +304,17 @@ public class MapDataExporter {
                                     "  fillColor: \"transparent\",\n" +
                                     "  fillOpacity: 1.0,\n" +
                                     "  fillPattern: %s\n" +
-                                    "}).addTo(surfaciqueGroup);\n",
+                                    "}).addTo(map);\n",
                             polygonInstanceId, polygonBaseId, color, weight, patternRef));
 
                     boolean isMain = (i == 0);
-                    boolean isLastOverlay = (i == angles.size() - 1);
-                    if ((bindPopupOnOverlay && isLastOverlay) || (!bindPopupOnOverlay && isMain)) {
-                        writer.write(String.format(Locale.ENGLISH, "%s.bindPopup(\"%s\");\n", polygonInstanceId, popupContent));
+                    if (bindPopupOnOverlay || isMain) {
+                        writer.write(String.format("%s.bindPopup(\"%s\");\n", polygonInstanceId, popupContent));
+                        writer.write(String.format("%s.children.push({ label: \"%s%s\", layer: %s });\n",
+                                displayLayer.getLabel(), POLYGON_EMOJI, truncateLabel(escape(name)), polygonInstanceId));
+                        if (hasAdditionalContent) {
+                            writer.write(generatePopupToggleJS(polygonInstanceId));
+                        }
                     }
                 }
             }
@@ -277,19 +329,19 @@ public class MapDataExporter {
                             dashArrayLine +
                             "  fillColor: \"%s\",\n" +
                             "  fillOpacity: %f\n" +
-                            "}).addTo(surfaciqueGroup).bindPopup(\"%s\");\n",
+                            "}).addTo(map).bindPopup(\"%s\");\n",
                     polygonBaseId, coordString, color, weight, fillColor, fillOpacity, popupContent));
-        }
 
-        if (hasAdditionalContent) {
-            String targetPolygonId = (usePattern && angles.size() > 1)
-                    ? (bindPopupOnOverlay ? polygonBaseId + "_overlay" + (angles.size() - 1) : polygonBaseId + "_main")
-                    : polygonBaseId;
-            writer.write(generatePopupToggleJS(targetPolygonId));
+            writer.write(String.format("%s.children.push({ label: \"%s%s\", layer: %s });\n",
+                    displayLayer.getLabel(), POLYGON_EMOJI, truncateLabel(escape(name)), polygonBaseId));
+            if (hasAdditionalContent) {
+                writer.write(generatePopupToggleJS(polygonBaseId));
+            }
         }
 
         writer.newLine();
     }
+
 
     private static void managedFeatureLine(Feature feature, Geometry geometry, BufferedWriter writer, StringBuilder popupContent) throws IOException {
         List<List<Coordonnee>> coords = (List<List<Coordonnee>>) geometry.getCoordinates();
@@ -302,7 +354,6 @@ public class MapDataExporter {
         Map<String, Object> props = feature.getProperties();
 
         String color = props.getOrDefault("color", "#000000").toString();
-
         double weight = Optional.ofNullable(props.get("weight"))
                 .map(obj -> (obj instanceof Number) ? ((Number) obj).doubleValue() : Double.parseDouble(obj.toString()))
                 .orElse(1.0);
@@ -324,13 +375,14 @@ public class MapDataExporter {
                 .orElse(ArrowStyle.NONE);
 
         Coordonnee first = ring.get(0);
-        String baseId = String.format("arrow_%s_%s",
-                String.valueOf(first.getLatitude()).replace(".", "_"),
-                String.valueOf(first.getLongitude()).replace(".", "_"));
+        String baseId = String.format("line_%s_%s", String.valueOf(first.getLatitude()).replace(".", "_"), String.valueOf(first.getLongitude()).replace(".", "_"));
 
-        if (lineStyle == LineStyle.CONTINUOUS) {
+        DisplayLayer displayLayer = (DisplayLayer) feature.getProperties().getOrDefault("displayLayer", DisplayLayer.AUTRE);
+        String name = Optional.ofNullable((String) feature.getProperties().get("name")).orElse(baseId);
+
+        if (lineStyle == LineStyle.CONTINUOUS && arrowStyle == ArrowStyle.NONE) {
             writer.write(String.format(Locale.ENGLISH,
-                    "var %s = L.polyline([\n  %s\n], {color: \"%s\", weight: %.1f}).addTo(ligneGroup).bindPopup(\"%s\");\n",
+                    "const %s = L.polyline([\n  %s\n], { color: \"%s\", weight: %.1f }).addTo(map).bindPopup(\"%s\");\n",
                     baseId, coordString, color, weight, popupContent));
         } else {
             List<String> patternList = new ArrayList<>();
@@ -367,24 +419,26 @@ public class MapDataExporter {
                         color, weight));
             }
 
-            // Ajout des flèches dans les patterns
             if (arrowStyle == ArrowStyle.START || arrowStyle == ArrowStyle.BOTH) {
-                patternList.add(String.format(
-                        "{ offset: 0, symbol: L.Symbol.arrowHead({pixelSize: 10, polygon: false, headAngle: 270, pathOptions: {stroke: true, color: '%s'}}) }",
-                        color));
+                patternList.add(String.format("{ offset: 0, symbol: L.Symbol.arrowHead({ pixelSize: 10, polygon: false, headAngle: 270, pathOptions: { stroke: true, color: '%s' } }) }", color));
             }
             if (arrowStyle == ArrowStyle.END || arrowStyle == ArrowStyle.BOTH) {
-                patternList.add(String.format(
-                        "{ offset: '100%%', symbol: L.Symbol.arrowHead({pixelSize: 10, polygon: false, pathOptions: {stroke: true, color: '%s'}}) }",
-                        color));
+                patternList.add(String.format("{ offset: '100%%', symbol: L.Symbol.arrowHead({ pixelSize: 10, polygon: false, pathOptions: { stroke: true, color: '%s' } }) }", color));
             }
 
             writer.write(String.format(Locale.ENGLISH,
-                    "var %s = L.polylineDecorator([\n  %s\n], {\n  patterns: [\n    %s\n  ]\n}).addTo(ligneGroup).bindPopup(\"%s\");\n",
+                    "const %s = L.polylineDecorator([\n  %s\n], {\n  patterns: [\n    %s\n  ]\n}).addTo(map).bindPopup(\"%s\");\n",
                     baseId, coordString, String.join(",\n    ", patternList), popupContent));
         }
 
+        writer.write(String.format("%s.children.push({ label: \"%s%s\", layer: %s });\n",
+                displayLayer.getLabel(), LINE_EMOJI, truncateLabel(escape(name)), baseId));
         writer.newLine();
+    }
+
+    private static String truncateLabel(String input) {
+        if (input == null) return "";
+        return input.length() > 30 ? input.substring(0, 27) + "…" : input;
     }
 
     private static String escape(String input) {

@@ -4,9 +4,10 @@
 let map;
 let baseLayers = {};
 let overlayLayers = {};
-let ponctuelGroup;
-let surfaciqueGroup;
-let ligneGroup;
+let objetsMetierTree;
+let dessinsTree;
+let kmlTree;
+let unknownedTree;
 let layerControl;
 
 // =============== INITIALISATION ==============================
@@ -62,46 +63,59 @@ function initializeMap() {
         });
     });
 
-    ponctuelGroup = L.layerGroup().addTo(map);
-    surfaciqueGroup = L.layerGroup().addTo(map);
-    ligneGroup = L.layerGroup().addTo(map);
-    kmlGroup = L.layerGroup().addTo(map);
-
-    const treeOverlays = {
-        label: 'Calques',
-        children: [{
-                label: 'Objets Métier',
-                selectAllCheckbox: true,
-                children: [{
-                        label: 'Ponctuel',
-                        layer: ponctuelGroup
-                    },
-                    {
-                        label: 'Surfacique',
-                        layer: surfaciqueGroup
-                    },
-                    {
-                        label: 'Lignes',
-                        layer: ligneGroup
-                    },
-                ]
-            },
-            {
-                label: 'KML',
-                selectAllCheckbox: true,
-                children: [{
-                    label: 'KML',
-                    layer: kmlGroup
-                }]
-
-            }
-        ]
+    objetsMetierTree = {
+        label: "Objets métier",
+        selectAllCheckbox: true,
+        collapsed: true,
+        children: []
     };
 
-    layerControl = L.control.layers.tree(baseLayers, treeOverlays, {
-        namedToggle: false,
-        selectorBack: false,
+    dessinsTree = {
+        label: "Dessins",
+        selectAllCheckbox: true,
         collapsed: true,
+        children: []
+    };
+
+    kmlTree = {
+        label: "KML",
+        selectAllCheckbox: true,
+        collapsed: true,
+        children: []
+    };
+
+    unknownedTree = {
+        label: "Inconnu",
+        selectAllCheckbox: true,
+        collapsed: true,
+        children: []
+    };
+}
+
+function hasChildren(tree) {
+    return Array.isArray(tree.children) && tree.children.length > 0;
+}
+
+function hasChildren(tree) {
+    return Array.isArray(tree.children) && tree.children.length > 0;
+}
+
+function refreshLayerControl() {
+    if (layerControl) {
+        map.removeControl(layerControl);
+    }
+
+    const visibleTrees = [objetsMetierTree, dessinsTree, kmlTree, unknownedTree]
+        .filter(hasChildren);
+
+    layerControl = L.control.layers.tree(baseLayers, {
+        label: 'Calques',
+        children: visibleTrees,
+    }, {
+        selectorBack: false,
+        collapsed: false,
+        closedSymbol: '&#8862; &#x1f5c0;',
+        openedSymbol: '&#8863; &#x1f5c1;',
     }).addTo(map);
 }
 
@@ -109,9 +123,13 @@ function initializeMap() {
 function loadData() {
     const script = document.createElement('script');
     script.src = 'data/data.js';
+    script.onload = () => {
+        refreshLayerControl();
+    };
     script.onerror = () => console.error('Erreur lors du chargement de data.js');
     document.body.appendChild(script);
 }
+
 
 // =============== GESTION DES ICONES (Markers) ================
 function createIcon(iconUrl, size = 36) {

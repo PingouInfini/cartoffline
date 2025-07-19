@@ -9,9 +9,10 @@ public class Line {
     private LineStyle lineStyle;
     private Double weight;
     private ArrowStyle arrowStyle;
+    private DisplayLayer displayLayer;
 
     public Line build() {
-        return new Line(coordinateArray, name, color, lineStyle, weight, arrowStyle);
+        return new Line(coordinateArray, name, color, lineStyle, weight, arrowStyle, displayLayer);
     }
 
     public Line(List<Coordonnee> coordinateArray) {
@@ -23,13 +24,14 @@ public class Line {
         this.color = color;
     }
 
-    public Line(List<Coordonnee> coordinateArray, String color, String name, LineStyle lineStyle, Double weight, ArrowStyle arrowStyle) {
+    public Line(List<Coordonnee> coordinateArray, String color, String name, LineStyle lineStyle, Double weight, ArrowStyle arrowStyle, DisplayLayer displayLayer) {
         this.coordinateArray = coordinateArray;
         this.color = color;
         this.name = name;
         this.lineStyle = lineStyle;
         this.weight = weight;
         this.arrowStyle = arrowStyle;
+        this.displayLayer = displayLayer;
     }
 
     public Line color(String color) {
@@ -57,6 +59,11 @@ public class Line {
         return this;
     }
 
+    public Line displayLayer(DisplayLayer displayLayer) {
+        this.displayLayer = displayLayer;
+        return this;
+    }
+
     public List<Coordonnee> getCoordinateArray() {
         return coordinateArray;
     }
@@ -79,5 +86,9 @@ public class Line {
 
     public ArrowStyle getArrowStyle() {
         return arrowStyle;
+    }
+
+    public DisplayLayer getDisplayLayer() {
+        return displayLayer;
     }
 }
