@@ -4,6 +4,9 @@
 let map;
 let baseLayers = {};
 let overlayLayers = {};
+let ponctuelGroup;
+let surfaciqueGroup;
+let ligneGroup;
 let layerControl;
 
 // =============== INITIALISATION ==============================
@@ -26,10 +29,15 @@ function initializeMap() {
         attribution: '© OpenStreetMap contributors'
     });
 
-    baseLayers = {
-        'Cache local': cachedLayer,
-        'OpenStreetMap': osmLayer
-    };
+    baseLayers = [{
+            label: 'Cache local',
+            layer: cachedLayer
+        },
+        {
+            label: 'OpenStreetMap',
+            layer: osmLayer
+        }
+    ];
 
     map = L.map('map', {
         crs: L.CRS.EPSG3857,
@@ -54,8 +62,46 @@ function initializeMap() {
         });
     });
 
-    layerControl = L.control.layers(baseLayers, overlayLayers, {
-        collapsed: true
+    ponctuelGroup = L.layerGroup().addTo(map);
+    surfaciqueGroup = L.layerGroup().addTo(map);
+    ligneGroup = L.layerGroup().addTo(map);
+    kmlGroup = L.layerGroup().addTo(map);
+
+    const treeOverlays = {
+        label: 'Calques',
+        children: [{
+                label: 'Objets Métier',
+                selectAllCheckbox: true,
+                children: [{
+                        label: 'Ponctuel',
+                        layer: ponctuelGroup
+                    },
+                    {
+                        label: 'Surfacique',
+                        layer: surfaciqueGroup
+                    },
+                    {
+                        label: 'Lignes',
+                        layer: ligneGroup
+                    },
+                ]
+            },
+            {
+                label: 'KML',
+                selectAllCheckbox: true,
+                children: [{
+                    label: 'KML',
+                    layer: kmlGroup
+                }]
+
+            }
+        ]
+    };
+
+    layerControl = L.control.layers.tree(baseLayers, treeOverlays, {
+        namedToggle: false,
+        selectorBack: false,
+        collapsed: true,
     }).addTo(map);
 }
 

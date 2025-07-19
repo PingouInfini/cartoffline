@@ -98,7 +98,7 @@ public class MapDataExporter {
         jsCode.append("const kml_").append(uuid).append(" = parser_").append(uuid)
                 .append(".parseFromString('").append(escapedContent).append("', 'text/xml');\n");
         jsCode.append("const track_").append(uuid).append(" = new L.KML(kml_").append(uuid).append(");\n");
-        jsCode.append("map.addLayer(track_").append(uuid).append(");\n");
+        jsCode.append("kmlGroup.addLayer(track_").append(uuid).append(");\n");
 
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputPath), StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
@@ -112,7 +112,7 @@ public class MapDataExporter {
         double lon = coords.get(0);
         String markerId = String.format("marker_%s", geometry.hashCode());
         writer.write(String.format(Locale.ENGLISH,
-                "const %s = L.marker([%f, %f],{icon:createIcon(\"images/marker/%s\", getIconSize(map.getZoom()))}).addTo(map).bindPopup(\"%s\");\n",
+                "const %s = L.marker([%f, %f],{icon:createIcon(\"images/marker/%s\", getIconSize(map.getZoom()))}).addTo(ponctuelGroup).bindPopup(\"%s\");\n",
                 markerId, lat, lon, icon, popupContent));
         writer.write(String.format(Locale.ENGLISH,
                 "mapMarkers.push({leafletMarker: %s, iconUrl: \"images/marker/%s\"});\n",
@@ -235,7 +235,7 @@ public class MapDataExporter {
                                 "  fillColor: \"%s\",\n" +
                                 "  fillOpacity: %f,\n" +
                                 "  fillPattern: %s\n" +
-                                "}).addTo(map);\n",
+                                "}).addTo(surfaciqueGroup);\n",
                         polygonBaseId, coordString, color, weight, fillColor, fillOpacity, patternRef));
 
                 writer.write(String.format(Locale.ENGLISH, "%s.bindPopup(\"%s\");\n", polygonBaseId, popupContent));
@@ -256,7 +256,7 @@ public class MapDataExporter {
                                     "  fillColor: \"transparent\",\n" +
                                     "  fillOpacity: 1.0,\n" +
                                     "  fillPattern: %s\n" +
-                                    "}).addTo(map);\n",
+                                    "}).addTo(surfaciqueGroup);\n",
                             polygonInstanceId, polygonBaseId, color, weight, patternRef));
 
                     boolean isMain = (i == 0);
@@ -277,7 +277,7 @@ public class MapDataExporter {
                             dashArrayLine +
                             "  fillColor: \"%s\",\n" +
                             "  fillOpacity: %f\n" +
-                            "}).addTo(map).bindPopup(\"%s\");\n",
+                            "}).addTo(surfaciqueGroup).bindPopup(\"%s\");\n",
                     polygonBaseId, coordString, color, weight, fillColor, fillOpacity, popupContent));
         }
 
@@ -330,7 +330,7 @@ public class MapDataExporter {
 
         if (lineStyle == LineStyle.CONTINUOUS) {
             writer.write(String.format(Locale.ENGLISH,
-                    "var %s = L.polyline([\n  %s\n], {color: \"%s\", weight: %.1f}).addTo(map).bindPopup(\"%s\");\n",
+                    "var %s = L.polyline([\n  %s\n], {color: \"%s\", weight: %.1f}).addTo(ligneGroup).bindPopup(\"%s\");\n",
                     baseId, coordString, color, weight, popupContent));
         } else {
             List<String> patternList = new ArrayList<>();
@@ -380,7 +380,7 @@ public class MapDataExporter {
             }
 
             writer.write(String.format(Locale.ENGLISH,
-                    "var %s = L.polylineDecorator([\n  %s\n], {\n  patterns: [\n    %s\n  ]\n}).addTo(map).bindPopup(\"%s\");\n",
+                    "var %s = L.polylineDecorator([\n  %s\n], {\n  patterns: [\n    %s\n  ]\n}).addTo(ligneGroup).bindPopup(\"%s\");\n",
                     baseId, coordString, String.join(",\n    ", patternList), popupContent));
         }
 
