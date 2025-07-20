@@ -213,15 +213,15 @@ public class MapDataExporter {
                 dashArray = null;
         }
 
+        FillPattern pattern = null;
         Object patternObj = feature.getProperties().get("fillPattern");
         String polygonBaseId = "polygon_" + geometry.hashCode();
         boolean usePattern = false;
-        boolean bindPopupOnOverlay = false;
         List<Integer> angles = new ArrayList<>();
         StringBuilder patternJS = new StringBuilder();
 
         if (patternObj instanceof FillPattern) {
-            FillPattern pattern = (FillPattern) patternObj;
+            pattern = (FillPattern) patternObj;
 
             if (pattern == FillPattern.NONE) {
                 fillOpacity = 0.0;
@@ -239,11 +239,9 @@ public class MapDataExporter {
                 } else if (pattern == FillPattern.GRID) {
                     angles.add(0);
                     angles.add(90);
-                    bindPopupOnOverlay = true;
                 } else if (pattern == FillPattern.MESH) {
                     angles.add(45);
                     angles.add(-45);
-                    bindPopupOnOverlay = true;
                 }
 
                 for (int i = 0; i < angles.size(); i++) {
@@ -290,32 +288,37 @@ public class MapDataExporter {
                 }
 
             } else {
+                String pathD1 = "";
+                String pathD2 = "";
+                int width = 8;
+                int height = 8;
+                if (pattern.equals(FillPattern.GRID)) {
+                    pathD1 = String.format("M 0 %d L %d %d", height / 2, width, height / 2);
+                    pathD2 = String.format("M %d 0 L %d %d", width / 2, width / 2, height);
+                } else if (pattern.equals(FillPattern.MESH)) {
+                    width = width * 2;
+                    height = height * 2;
+                    pathD1 = String.format("M 0 0 L %d %d", height, height);
+                    pathD2 = String.format("M %d 0 L 0 %d", height, height);
+                }
+
+                writer.write(String.format("const crossHatchPattern_%s = new L.Pattern({width: %d,height: %d,patternUnits: 'userSpaceOnUse'});\n",
+                        polygonBaseId, width, height));
+                writer.write(String.format("const diag1_%s = new L.PatternPath({d: '%s',color: '%s','stroke-width': 2});\ncrossHatchPattern_%s.addShape(diag1_%s);\n",
+                        polygonBaseId, pathD1, fillColor, polygonBaseId, polygonBaseId));
+                writer.write(String.format("const diag2_%s = new L.PatternPath({d: '%s',color: '%s','stroke-width': 2});\ncrossHatchPattern_%s.addShape(diag2_%s);\n",
+                        polygonBaseId, pathD2, fillColor, polygonBaseId, polygonBaseId));
+                writer.write(String.format("crossHatchPattern_%s.addTo(map);\n",
+                        polygonBaseId));
                 writer.write(String.format("const polygonCoords_%s = [\n  %s\n];\n", polygonBaseId, coordString));
-                for (int i = 0; i < angles.size(); i++) {
-                    String polygonInstanceId = polygonBaseId + "_" + (i == 0 ? "main" : "overlay" + i);
-                    String patternRef = "pattern_" + polygonBaseId + "_a" + i;
-                    String dashArrayLine = dashArray != null ? "  dashArray: " + dashArray + ",\n" : "";
+                writer.write(String.format("const %s = L.polygon(polygonCoords_%s, {color: '#000000', weight: 1, fillOpacity: 1, fillPattern: crossHatchPattern_%s}).addTo(map);\n",
+                        polygonBaseId, polygonBaseId, polygonBaseId));
+                writer.write(String.format("%s.bindPopup(\"%s\");\n", polygonBaseId, popupContent));
+                writer.write(String.format("%s.children.push({ label: \"%s%s\", layer: %s });\n",
+                        displayLayer.getLabel(), POLYGON_EMOJI, truncateLabel(escape(name)), polygonBaseId));
 
-                    writer.write(String.format(Locale.ENGLISH,
-                            "const %s = L.polygon(polygonCoords_%s, {\n" +
-                                    "  color: \"%s\",\n" +
-                                    "  weight: %f,\n" +
-                                    dashArrayLine +
-                                    "  fillColor: \"transparent\",\n" +
-                                    "  fillOpacity: 1.0,\n" +
-                                    "  fillPattern: %s\n" +
-                                    "}).addTo(map);\n",
-                            polygonInstanceId, polygonBaseId, color, weight, patternRef));
-
-                    boolean isMain = (i == 0);
-                    if (bindPopupOnOverlay || isMain) {
-                        writer.write(String.format("%s.bindPopup(\"%s\");\n", polygonInstanceId, popupContent));
-                        writer.write(String.format("%s.children.push({ label: \"%s%s\", layer: %s });\n",
-                                displayLayer.getLabel(), POLYGON_EMOJI, truncateLabel(escape(name)), polygonInstanceId));
-                        if (hasAdditionalContent) {
-                            writer.write(generatePopupToggleJS(polygonInstanceId));
-                        }
-                    }
+                if (hasAdditionalContent) {
+                    writer.write(generatePopupToggleJS(polygonBaseId));
                 }
             }
 
