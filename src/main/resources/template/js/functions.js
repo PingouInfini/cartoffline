@@ -21,12 +21,14 @@ function initializeMap() {
         maxZoom: 19,
         tms: true,
         noWrap: true,
+        opacity: 1,
         attribution: 'Cache local'
     });
 
     const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         noWrap: true,
+        opacity: 1,
         attribution: '© OpenStreetMap contributors'
     });
 
@@ -61,6 +63,18 @@ function initializeMap() {
         }) => {
             leafletMarker.setIcon(createIcon(iconUrl, newSize));
         });
+    });
+
+    // Gestion du slider unique
+    const globalSlider = document.getElementById('globalOpacity');
+    const opacityLabel = document.getElementById('opacityValue');
+
+    const layers = [cachedLayer, osmLayer];
+
+    globalSlider.addEventListener('input', () => {
+        const value = parseFloat(globalSlider.value);
+        opacityLabel.textContent = Math.round(value * 100) + '%';
+        layers.forEach(layer => layer.setOpacity(value));
     });
 
     objetsMetierTree = {
