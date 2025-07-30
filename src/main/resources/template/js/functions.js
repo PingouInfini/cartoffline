@@ -66,15 +66,28 @@ function initializeMap() {
     });
 
     // Gestion du slider unique
-    const globalSlider = document.getElementById('globalOpacity');
-    const opacityLabel = document.getElementById('opacityValue');
+    const opacitySlider = document.getElementById('globalOpacity');
+    const opacityValue = document.getElementById('opacityValue');
+    const darkOverlay = document.getElementById('darkOverlay');
 
     const layers = [cachedLayer, osmLayer];
 
-    globalSlider.addEventListener('input', () => {
-        const value = parseFloat(globalSlider.value);
-        opacityLabel.textContent = Math.round(value * 100) + '%';
-        layers.forEach(layer => layer.setOpacity(value));
+    opacitySlider.addEventListener('input', function() {
+        const value = parseFloat(this.value);
+
+        // Mise à jour texte
+        opacityValue.textContent = Math.round(value * 100) + '%';
+
+        if (value <= 1) {
+            // Cas d’éclaircissement (0 → 1)
+            document.querySelector('.leaflet-tile-pane').style.opacity = value;
+            darkOverlay.style.opacity = 0;
+        } else {
+            // Cas d’assombrissement (1 → 2)
+            const darkness = 2 - value; // 0 → 1
+            document.querySelector('.leaflet-tile-pane').style.opacity = darkness;
+            darkOverlay.style.opacity = 1;
+        }
     });
 
     objetsMetierTree = {
