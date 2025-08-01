@@ -133,12 +133,26 @@ public class MapDataExporter {
         double lon = coords.get(0);
         String markerId = String.format("marker_%s", geometry.hashCode());
 
+        // Coordonnées
+        writer.write(String.format(Locale.ENGLISH,
+                "const origin_%s = L.latLng(%f, %f);\n",
+                markerId, lat, lon));
+
         // Crée le marker
         writer.write(String.format(Locale.ENGLISH,
-                "const %s = L.marker([%f, %f], {" +
+                "const %s = L.marker(origin_%s, { draggable: true," +
                         "icon: createIcon(\"images/marker/%s\", getIconSize(map.getZoom()))" +
                         "}).bindPopup(\"%s\");\n",
-                markerId, lat, lon, icon, popupContent));
+                markerId, markerId, icon, popupContent));
+
+        // Crée une ligne reliant le marker à sa coordonnée en cas de drag & drop
+        writer.write(String.format(Locale.ENGLISH,
+                "const line_%s = L.polyline([origin_%s,origin_%s], { color: 'magenta' }).addTo(map)\n",
+                markerId, markerId, markerId));
+
+        writer.write(String.format(Locale.ENGLISH,
+                "%s.on('drag', function (e) { const newPos = e.target.getLatLng(); line_%s.setLatLngs([origin_%s, newPos])});\n",
+                        markerId, markerId, markerId));
 
         // L'ajoute à la carte directement
         writer.write(String.format(Locale.ENGLISH,
