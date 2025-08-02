@@ -211,18 +211,34 @@ function addSearchToLayerControl() {
 
     const searchDiv = document.createElement('div');
     searchDiv.style.padding = '5px';
+    searchDiv.style.position = 'relative';
 
     const input = document.createElement('input');
     input.type = 'text';
     input.placeholder = '🔍 Filtrer les calques...';
     input.style.width = '100%';
     input.style.boxSizing = 'border-box';
+    input.style.paddingRight = '24px'; // espace pour la croix
 
-    searchDiv.appendChild(input);
-    container.insertBefore(searchDiv, container.firstChild);
+    // Bouton clear (croix)
+    const clearBtn = document.createElement('span');
+    clearBtn.textContent = '❌';
+    clearBtn.title = 'Effacer';
+    clearBtn.style.position = 'absolute';
+    clearBtn.style.right = '10px';
+    clearBtn.style.top = '50%';
+    clearBtn.style.transform = 'translateY(-50%)';
+    clearBtn.style.cursor = 'pointer';
+    clearBtn.style.fontSize = '12px';
+    clearBtn.style.color = '#666';
+    clearBtn.style.display = 'none'; // masqué par défaut
 
+    // Afficher/masquer la croix selon le contenu
     input.addEventListener('input', () => {
-        const query = input.value.trim().toLowerCase();
+        const query = input.value.trim();
+        clearBtn.style.display = query ? 'inline' : 'none';
+
+        const normalizedQueryWords = normalizeText(query).split(/\s+/).filter(w => w.length > 0);
 
         // Étape 1 — Masquer tous les noeuds non pertinents selon la recherche
         container.querySelectorAll('.leaflet-layerstree-node').forEach(node => {
@@ -234,9 +250,6 @@ function addSearchToLayerControl() {
             if (!label) return;
 
             const normalizedLabel = normalizeText(label.textContent);
-            const normalizedQueryWords = normalizeText(query).split(/\s+/).filter(w => w.length > 0);
-
-            // Vérifie que **tous** les mots sont présents dans le label
             const match = normalizedQueryWords.every(word => normalizedLabel.includes(word));
             node.style.display = match ? '' : 'none';
         });
@@ -249,7 +262,7 @@ function addSearchToLayerControl() {
             group.style.display = visibleChild ? '' : 'none';
 
             const parentHeader = group.previousElementSibling;
-            if (parentHeader && parentHeader.classList.contains('leaflet-layerstree-header')) {
+            if (parentHeader?.classList.contains('leaflet-layerstree-header')) {
                 parentHeader.style.display = visibleChild ? '' : 'none';
             }
         });
@@ -261,4 +274,15 @@ function addSearchToLayerControl() {
         const separator = container.querySelector('.leaflet-control-layers-separator');
         if (separator) separator.style.display = 'none';
     });
+
+    // Action au clic sur la croix
+    clearBtn.addEventListener('click', () => {
+        input.value = '';
+        input.dispatchEvent(new Event('input'));
+        input.focus();
+    });
+
+    searchDiv.appendChild(input);
+    searchDiv.appendChild(clearBtn);
+    container.insertBefore(searchDiv, container.firstChild);
 }
