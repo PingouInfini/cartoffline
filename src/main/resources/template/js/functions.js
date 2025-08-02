@@ -199,6 +199,13 @@ function getIconSize(zoom) {
 }
 
 // =============== FILTRAGE DES CALQUES =========================
+function normalizeText(text) {
+    return text
+        .normalize("NFD")                     // décompose accents
+        .replace(/[\u0300-\u036f]/g, "")      // enlève accents
+        .toLowerCase();                       // minuscule
+}
+
 function addSearchToLayerControl() {
     const container = layerControl._container;
 
@@ -226,7 +233,11 @@ function addSearchToLayerControl() {
             const label = node.querySelector('.leaflet-layerstree-header-name');
             if (!label) return;
 
-            const match = label.textContent.toLowerCase().includes(query);
+            const normalizedLabel = normalizeText(label.textContent);
+            const normalizedQueryWords = normalizeText(query).split(/\s+/).filter(w => w.length > 0);
+
+            // Vérifie que **tous** les mots sont présents dans le label
+            const match = normalizedQueryWords.every(word => normalizedLabel.includes(word));
             node.style.display = match ? '' : 'none';
         });
 
