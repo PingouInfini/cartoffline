@@ -10,6 +10,7 @@ let kmlTree;
 let unknownedTree;
 let layerControl;
 const mapMarkers = [];
+const mapCenterItem = [];
 
 // =============== INITIALISATION ==============================
 function initialize() {
@@ -114,6 +115,40 @@ function overrideGroupLabelClicks() {
     });
 }
 
+function overrideItemLabelClicks() {
+    const container = layerControl._container;
+
+    container.querySelectorAll('.leaflet-layerstree-header-name').forEach(labelSpan => {
+        labelSpan.style.cursor = 'pointer';
+
+        labelSpan.addEventListener('click', (e) => {
+            e.preventDefault(); // empêche la sélection du checkbox
+
+            const labelText = labelSpan.textContent;
+
+            // Trouver l'item correspondant
+            const found = mapCenterItem.find(m => m.name === labelText);
+            if (!found) {
+                return;
+            }
+
+            const item = found.leafletItemId;
+            var centrer;
+            if (item instanceof L.Marker || item instanceof L.Circle || item instanceof L.CircleMarker) {
+                centrer = item.getLatLng();
+            } else if (item instanceof L.Polygon || item instanceof L.Polyline) {
+                centrer = item.getBounds().getCenter();
+            } else if (item instanceof L.LayerGroup && item.getBounds) {
+                centrer = item.getBounds().getCenter();
+            }
+
+            map.setView(centrer, map.getZoom(), { animate: true });
+
+            if (item.openPopup) item.openPopup();
+        });
+    });
+}
+
 function refreshLayerControl() {
     if (layerControl) {
         map.removeControl(layerControl);
@@ -132,6 +167,7 @@ function refreshLayerControl() {
     }).addTo(map);
 
     overrideGroupLabelClicks();
+    overrideItemLabelClicks();
     addSearchToLayerControl();
 }
 

@@ -112,6 +112,10 @@ public class MapDataExporter {
         jsCode.append(kmlDisplayLayer.getLabel()).append(".children.push({ label: \"").append(KML_EMOJI)
                 .append(truncateLabel(escape(name))).append("\", layer: kmlLayer_").append(uuid).append(" });\n");
 
+        jsCode.append(String.format(Locale.ENGLISH,
+                "mapCenterItem.push({ name: \"%s%s\", leafletItemId: kmlLayer_%s});\n",
+                KML_EMOJI, truncateLabel(escape(name)), uuid));
+
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputPath), StandardCharsets.UTF_8,
                 StandardOpenOption.CREATE, StandardOpenOption.APPEND)) {
             writer.write(jsCode.toString());
@@ -160,18 +164,22 @@ public class MapDataExporter {
 
         // L'ajoute dans le contrôle de couches arborescent sous "Ponctuel"
         DisplayLayer displayLayer = (DisplayLayer) feature.getProperties().getOrDefault("displayLayer", DisplayLayer.AUTRE);
+        String visibleLabel = truncateLabel(escape(name != null && !name.equalsIgnoreCase("null") && !name.isEmpty() ? name : markerId));
         writer.write(String.format(Locale.ENGLISH,
                 "%s.children.push({ label: \"%s%s\", layer: %s });\n",
                 displayLayer.getLabel(),
                 POINT_EMOJI,
-                truncateLabel(escape(name != null && !name.equalsIgnoreCase("null") && !name.isEmpty() ? name : markerId)), // label visible
+                visibleLabel,
                 markerId // identifiant technique du marker
         ));
 
         // Enregistre le marker
         writer.write(String.format(Locale.ENGLISH,
-                "mapMarkers.push({ leafletMarker: %s, iconUrl: \"images/marker/%s\" });\n",
-                markerId, icon));
+                "mapMarkers.push({ name: \"%s%s\", leafletMarker: %s, iconUrl: \"images/marker/%s\" });\n",
+                POINT_EMOJI, visibleLabel, markerId, icon));
+        writer.write(String.format(Locale.ENGLISH,
+                "mapCenterItem.push({ name: \"%s%s\", leafletItemId: %s});\n",
+                POINT_EMOJI, visibleLabel, markerId));
 
         // Contenu additionnel ?
         if (hasAdditionalContent) {
@@ -356,6 +364,10 @@ public class MapDataExporter {
             }
         }
 
+        writer.write(String.format(Locale.ENGLISH,
+                "mapCenterItem.push({ name: \"%s%s\", leafletItemId: %s});\n",
+                POLYGON_EMOJI, truncateLabel(escape(name)), polygonBaseId));
+
         writer.newLine();
     }
 
@@ -450,6 +462,11 @@ public class MapDataExporter {
 
         writer.write(String.format("%s.children.push({ label: \"%s%s\", layer: %s });\n",
                 displayLayer.getLabel(), LINE_EMOJI, truncateLabel(escape(name)), baseId));
+
+        writer.write(String.format(Locale.ENGLISH,
+                "mapCenterItem.push({ name: \"%s%s\", leafletItemId: %s});\n",
+                LINE_EMOJI, truncateLabel(escape(name)), baseId));
+
         writer.newLine();
     }
 
@@ -475,6 +492,6 @@ public class MapDataExporter {
                         "      toggle.textContent = visible ? '▶ Plus d\\'information' : '▼ Masquer les informations';\n" +
                         "    });\n" +
                         "  }\n" +
-                        "});", elementId);
+                        "});\n", elementId);
     }
 }
