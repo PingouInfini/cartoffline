@@ -151,7 +151,7 @@ public class MapDataExporter {
 
         // Crée une ligne reliant le marker à sa coordonnée en cas de drag & drop
         writer.write(String.format(Locale.ENGLISH,
-                "const line_%s = L.polyline([origin_%s,origin_%s], { color: 'magenta' }).addTo(map)\n",
+                "const line_%s = L.polyline([origin_%s,origin_%s], { color: 'magenta' })\n",
                 markerId, markerId, markerId));
 
         writer.write(String.format(Locale.ENGLISH,
@@ -160,13 +160,13 @@ public class MapDataExporter {
 
         // L'ajoute à la carte directement
         writer.write(String.format(Locale.ENGLISH,
-                "%s.addTo(map);\n", markerId));
+                "const group_%s = L.layerGroup([%s, line_%s]).addTo(map);\n", markerId, markerId, markerId));
 
         // L'ajoute dans le contrôle de couches arborescent sous "Ponctuel"
         DisplayLayer displayLayer = (DisplayLayer) feature.getProperties().getOrDefault("displayLayer", DisplayLayer.AUTRE);
         String visibleLabel = truncateLabel(escape(name != null && !name.equalsIgnoreCase("null") && !name.isEmpty() ? name : markerId));
         writer.write(String.format(Locale.ENGLISH,
-                "%s.children.push({ label: \"%s%s\", layer: %s });\n",
+                "%s.children.push({ label: \"%s%s\", layer: group_%s });\n",
                 displayLayer.getLabel(),
                 POINT_EMOJI,
                 visibleLabel,
