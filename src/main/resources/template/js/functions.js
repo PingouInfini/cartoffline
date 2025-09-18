@@ -12,6 +12,8 @@ let layerControl;
 const mapMarkers = [];
 const mapCenterItem = [];
 
+let layerControlCollapsed = false; // état global du panneau calques
+
 // =============== INITIALISATION ==============================
 function initialize() {
     initializeMap();
@@ -58,6 +60,21 @@ function initializeMap() {
         });
     });
 
+    map.on("popupopen", (e) => {
+        const popupEl = e.popup.getElement();
+        if (!popupEl) return;
+
+        popupEl.querySelectorAll(".coord-value").forEach(span => {
+            const lat = span.dataset.lat;
+            const lon = span.dataset.lon;
+            if (coordsFormat === "latlon") {
+                span.textContent = `${parseFloat(lat).toFixed(5)}, ${parseFloat(lon).toFixed(5)}`;
+            } else {
+                span.textContent = `${parseFloat(lon).toFixed(5)}, ${parseFloat(lat).toFixed(5)}`;
+            }
+        });
+    });
+
     // Gestion du slider unique
     const opacitySlider = document.getElementById('globalOpacity');
     const opacityValue = document.getElementById('opacityValue');
@@ -86,6 +103,7 @@ function hasChildren(tree) {
     return Array.isArray(tree.children) && tree.children.length > 0;
 }
 
+// =============== SURCHARGES UI ===============================
 function overrideGroupLabelClicks() {
     const treeContainer = layerControl._container;
 
@@ -149,6 +167,46 @@ function overrideItemLabelClicks() {
     });
 }
 
+function addCollapseButtonToLayerControl() {
+    const container = layerControl._container;
+
+    // Créer le header avec boutons collapse
+    const header = document.createElement('div');
+    header.style.display = "flex";
+    header.style.justifyContent = "space-between";
+    header.style.alignItems = "center";
+    header.style.padding = "4px";
+    header.style.fontWeight = "bold";
+
+    const title = document.createElement('span');
+    title.textContent = "☰ Calques";
+
+    const collapseBtn = document.createElement('button');
+    collapseBtn.textContent = "▶️";
+    collapseBtn.style.cursor = "pointer";
+    collapseBtn.style.border = "none";
+    collapseBtn.style.background = "transparent";
+    collapseBtn.style.fontSize = "14px";
+
+    collapseBtn.addEventListener('click', () => {
+        layerControlCollapsed = !layerControlCollapsed;
+        if (layerControlCollapsed) {
+            // collapse
+            container.querySelectorAll(':scope > *:not(:first-child)').forEach(el => el.style.display = "none");
+            collapseBtn.textContent = "◀️";
+        } else {
+            // uncollapse
+            container.querySelectorAll(':scope > *:not(:first-child)').forEach(el => el.style.display = "");
+            collapseBtn.textContent = "▶️";
+        }
+    });
+
+    header.appendChild(title);
+    header.appendChild(collapseBtn);
+
+    container.insertBefore(header, container.firstChild);
+}
+
 function refreshLayerControl() {
     if (layerControl) {
         map.removeControl(layerControl);
@@ -166,9 +224,11 @@ function refreshLayerControl() {
         openedSymbol: '&#8863; &#x1f5c1;',
     }).addTo(map);
 
+    // Ajout des surcharges
     overrideGroupLabelClicks();
     overrideItemLabelClicks();
     addSearchToLayerControl();
+    addCollapseButtonToLayerControl();
 }
 
 // =============== CHARGEMENT DES DONNÉES ======================
