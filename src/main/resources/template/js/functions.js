@@ -12,6 +12,7 @@ let layerControl;
 const mapMarkers = [];
 const mapCenterItem = [];
 
+let coordsMode  = "latlon"; // "latlon" ou "mgrs"
 let layerControlCollapsed = false; // état global du panneau calques
 
 // =============== INITIALISATION ==============================
@@ -65,12 +66,15 @@ function initializeMap() {
         if (!popupEl) return;
 
         popupEl.querySelectorAll(".coord-value").forEach(span => {
-            const lat = span.dataset.lat;
-            const lon = span.dataset.lon;
-            if (coordsFormat === "latlon") {
-                span.textContent = `${parseFloat(lat).toFixed(5)}, ${parseFloat(lon).toFixed(5)}`;
-            } else {
-                span.textContent = `${parseFloat(lon).toFixed(5)}, ${parseFloat(lat).toFixed(5)}`;
+            const lat = parseFloat(span.dataset.lat);
+            const lon = parseFloat(span.dataset.lon);
+
+            if (coordsMode === "latlon") {
+                // Affichage classique lat, lon
+                span.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+            } else if (coordsMode === "mgrs") {
+                // Affichage MGRS
+                span.textContent = latLonToMgrs(lat, lon);
             }
         });
     });
@@ -345,4 +349,78 @@ function addSearchToLayerControl() {
     searchDiv.appendChild(input);
     searchDiv.appendChild(clearBtn);
     container.insertBefore(searchDiv, container.firstChild);
+}
+
+// =============== COORDONNÉES (POPUP HEADER) ==================
+function switchCoordsFormat(btn) {
+    coordsMode = (coordsMode === "latlon") ? "mgrs" : "latlon";
+
+    document.querySelectorAll(".coord-value").forEach(span => {
+        const lat = parseFloat(span.dataset.lat);
+        const lon = parseFloat(span.dataset.lon);
+
+        if (coordsMode === "latlon") {
+            span.textContent = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+        } else if (coordsMode === "mgrs") {
+            span.textContent = latLonToMgrs(lat, lon);
+        }
+    });
+}
+
+function copyDisplayedCoords(btn) {
+    const span = btn.parentElement.querySelector(".coord-value");
+    if (span) {
+        navigator.clipboard.writeText(span.textContent);
+    }
+}
+
+// ======= Fonction pour afficher un toast =======
+function showToast(message, duration = 2000) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.style.position = 'fixed';
+    toast.style.top = '20px';
+    toast.style.left = '50%';
+    toast.style.transform = 'translateX(-50%)';
+    toast.style.background = 'rgba(0,0,0,0.8)';
+    toast.style.color = '#fff';
+    toast.style.padding = '8px 12px';
+    toast.style.borderRadius = '4px';
+    toast.style.fontSize = '14px';
+    toast.style.zIndex = 9999;
+    toast.style.opacity = 0;
+    toast.style.transition = 'opacity 0.3s';
+
+    document.body.appendChild(toast);
+
+    // Apparition
+    requestAnimationFrame(() => {
+        toast.style.opacity = 1;
+    });
+
+    // Disparition
+    setTimeout(() => {
+        toast.style.opacity = 0;
+        toast.addEventListener('transitionend', () => toast.remove());
+    }, duration);
+}
+
+// ======= Nouvelle version de copyDisplayedCoords =======
+function copyDisplayedCoords(button) {
+    const span = button.parentElement.querySelector(".coord-value");
+    if (!span) return;
+
+    const text = span.textContent;
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            showToast("Coordonnées copiées : " + text + " 📋");
+        })
+        .catch(err => {
+            showToast("Erreur lors de la copie ❌");
+            console.error("Erreur copie :", err);
+        });
+}
+
+function latLonToMgrs(lat, lon) {
+    return mgrs.forward([lon, lat], 5); // 5 = précision (1m ~ 5 caractères)
 }

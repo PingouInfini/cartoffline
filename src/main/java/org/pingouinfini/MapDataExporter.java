@@ -36,6 +36,10 @@ public class MapDataExporter {
 
                 StringBuilder popupContent = new StringBuilder("<div style=\\\"width:200px;\\\">");
 
+                String coordsHtml = getCoordinatesString(geometry);
+                if (coordsHtml != null && !coordsHtml.isEmpty()) {
+                    popupContent.append(coordsHtml);
+                }
                 if (name != null && !name.equalsIgnoreCase("null") && !name.isEmpty()) {
                     popupContent.append("<b>Nom : </b>").append(escape(name)).append("<br>");
                 }
@@ -156,7 +160,7 @@ public class MapDataExporter {
 
         writer.write(String.format(Locale.ENGLISH,
                 "%s.on('drag', function (e) { const newPos = e.target.getLatLng(); line_%s.setLatLngs([origin_%s, newPos])});\n",
-                        markerId, markerId, markerId));
+                markerId, markerId, markerId));
 
         // L'ajoute à la carte directement
         writer.write(String.format(Locale.ENGLISH,
@@ -493,5 +497,61 @@ public class MapDataExporter {
                         "    });\n" +
                         "  }\n" +
                         "});\n", elementId);
+    }
+
+    private static String getCoordinatesString(Geometry geometry) {
+        try {
+            double lat = Double.NaN, lon = Double.NaN;
+
+            switch (geometry.getType()) {
+                case "Point": {
+                    List<Double> coords = (List<Double>) geometry.getCoordinates();
+                    lat = coords.get(1);
+                    lon = coords.get(0);
+                    break;
+                }
+                case "Line": {
+                    List<List<Coordonnee>> coords = (List<List<Coordonnee>>) geometry.getCoordinates();
+                    if (!coords.isEmpty() && !coords.get(0).isEmpty()) {
+                        Coordonnee c = coords.get(0).get(0);
+                        lat = c.getLatitude();
+                        lon = c.getLongitude();
+                    }
+                    break;
+                }
+                case "Polygon": {
+                    List<List<Coordonnee>> coords = (List<List<Coordonnee>>) geometry.getCoordinates();
+                    if (!coords.isEmpty() && !coords.get(0).isEmpty()) {
+                        List<Coordonnee> ring = coords.get(0);
+                        double sumLat = 0, sumLon = 0;
+                        for (Coordonnee c : ring) {
+                            sumLat += c.getLatitude();
+                            sumLon += c.getLongitude();
+                        }
+                        lat = sumLat / ring.size();
+                        lon = sumLon / ring.size();
+                    }
+                    break;
+                }
+                default:
+                    return "";
+            }
+
+            if (Double.isNaN(lat) || Double.isNaN(lon)) {
+                return "";
+            }
+
+            return String.format(Locale.ENGLISH,
+                    "<div class='popup-coords-header'>" +
+                            "<button class='switch-btn' onclick='switchCoordsFormat(this)' title='Basculer lat/lon &#8596; MGRS'>&#128260;</button>" +
+                            "<span class='coord-value' data-lat='%.5f' data-lon='%.5f'>%.5f, %.5f</span>" +  // affichage direct en lat,lon
+                            "<button class='copy-btn' onclick='copyDisplayedCoords(this)' title='Copier'>&#128203;</button>" +
+                            "</div>",
+                    lat, lon, lat, lon
+            );
+
+        } catch (Exception e) {
+            return "";
+        }
     }
 }
