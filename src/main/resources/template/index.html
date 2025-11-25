@@ -4,26 +4,65 @@
     <meta charset="UTF-8" />
     <title>Cartoffline</title>
 
-    <!-- Leaflet et dépendances -->
+    <!-- ================= CSS EXTERNES ================= -->
     <link rel="stylesheet" href="css/leaflet-1.9.4.css" />
-    <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/L.Control.Layers.Tree.css" />
-    <script src="js/leaflet-1.9.4.js"></script>
-    <script src="js/leaflet.pattern.js"></script>
-    <script src="js/leaflet.polylineDecorator.js"></script>
-    <script src="js/L.Control.Layers.Tree.js"></script>
-    <script src="js/L.KML.js"></script>
-    <script src="js/jquery-3.7.1.min.js"></script>
-    <script src="js/mgrs-1.0.0.min.js"></script>
+    <link rel="stylesheet" href="css/style.css" />
+
+    <!-- ================= JS EXTERNES ================= -->
+    <script src="js/vendors/leaflet-1.9.4.js"></script>
+    <script src="js/vendors/leaflet.pattern.js"></script>
+    <script src="js/vendors/leaflet.polylineDecorator.js"></script>
+    <script src="js/vendors/L.Control.Layers.Tree.js"></script>
+    <script src="js/vendors/L.KML.js"></script>
+    <script src="js/vendors/jquery-3.7.1.min.js"></script>
+    <script src="js/vendors/mgrs-1.0.0.min.js"></script>
+    <script src="js/vendors/maplibre-gl-3.6.2.js"></script>
 </head>
-<body onload="initialize()">
+<body>
 <div id="map">
     <div id="darkOverlay"></div>
 </div>
-<div class="global-opacity-slider">
+
+<!-- BOUTONS À DROITE -->
+<div id="right-buttons">
+    <button class="action-btn" onclick="togglePanel('baseLayers')">🗺️</button>
+    <button class="action-btn" onclick="togglePanel('layers')">📚</button>
+    <button class="action-btn" onclick="togglePanel('opacity')">🌓️</button>
+    <button class="action-btn" onclick="togglePanel('markerSize')">📍</button>
+    <button class="action-btn" onclick="togglePanel('options')">⚙️</button>
+</div>
+
+<!-- PANEL LATÉRAL -->
+<div id="side-panel">
+    <div id="close-panel" onclick="closePanel()">✖</div>
+    <div id="panel-content"></div>
+</div>
+
+<div class="global-opacity-slider" style="display:none;">
     <label for="globalOpacity">Opacité : <span id="opacityValue">100%</span></label><br>
     <input type="range" id="globalOpacity" min="0" max="2" step="0.01" value="1">
 </div>
-<script src="js/functions.js"></script>
+
+<!-- ================= JS DE L’APPLICATION ================= -->
+<!-- 1. Fonctions de carte -->
+<script src="js/map/map-init.js"></script>
+<script src="js/map/icons.js"></script>
+<script src="js/map/coords.js"></script>
+
+<!-- 2. Gestion des calques -->
+<script src="js/layers/layer-trees.js"></script>
+<script src="js/layers/layer-search.js"></script>
+<script src="js/layers/layer-control.js"></script>
+
+<!-- 3. UI divers -->
+<script src="js/ui/opacity-slider.js"></script>
+<script src="js/ui/side-panel.js"></script>
+
+<!-- 4. Chargeur de données -->
+<script src="js/data/data-loader.js"></script>
+
+<!-- 5. Point d’entrée -->
+<script src="js/main.js"></script>
 </body>
 </html>

@@ -143,7 +143,7 @@ public class MapDataExporter {
 
         // Coordonnées
         writer.write(String.format(Locale.ENGLISH,
-                "const origin_%s = L.latLng(%f, %f);\n",
+                "const origin_%s = L.latLng(%.14f, %.14f);\n",
                 markerId, lat, lon));
 
         // Crée le marker
@@ -199,7 +199,7 @@ public class MapDataExporter {
         List<Coordonnee> ring = coords.get(0);
 
         String coordString = ring.stream()
-                .map(c -> String.format(Locale.ENGLISH, "[%f, %f]", c.getLatitude(), c.getLongitude()))
+                .map(c -> String.format(Locale.ENGLISH, "[%.14f, %.14f]", c.getLatitude(), c.getLongitude()))
                 .collect(Collectors.joining(",\n  "));
 
         String color = feature.getProperties().getOrDefault("color", "#000000").toString();
@@ -381,7 +381,7 @@ public class MapDataExporter {
         List<Coordonnee> ring = coords.get(0);
 
         String coordString = ring.stream()
-                .map(c -> String.format(Locale.ENGLISH, "[%f, %f]", c.getLatitude(), c.getLongitude()))
+                .map(c -> String.format(Locale.ENGLISH, "[%.14f, %.14f]", c.getLatitude(), c.getLongitude()))
                 .collect(Collectors.joining(",\n  "));
 
         Map<String, Object> props = feature.getProperties();
@@ -544,7 +544,7 @@ public class MapDataExporter {
             return String.format(Locale.ENGLISH,
                     "<div class='popup-coords-header'>" +
                             "<button class='switch-btn' onclick='switchCoordsFormat(this)' title='Basculer lat/lon &#8596; MGRS'>&#128260;</button>" +
-                            "<span class='coord-value' data-lat='%.5f' data-lon='%.5f'>%.5f, %.5f</span>" +  // affichage direct en lat,lon
+                            "<span class='coord-value' data-lat='%.14f' data-lon='%.14f'>%.5f, %.5f</span>" +  // affichage direct en lat,lon
                             "<button class='copy-btn' onclick='copyDisplayedCoords(this)' title='Copier'>&#128203;</button>" +
                             "</div>",
                     lat, lon, lat, lon
