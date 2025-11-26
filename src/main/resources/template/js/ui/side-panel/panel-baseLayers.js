@@ -24,7 +24,7 @@ function renderBaseLayersPanel(container) {
             layerDiv.style.cursor = 'pointer';
             layerDiv.style.marginBottom = '8px';
             layerDiv.style.border = map.hasLayer(bl.layer)
-                ? '3px solid blue'
+                ? '5px solid #76C551'
                 : '1px solid #ccc';
             layerDiv.style.borderRadius = '4px';
             layerDiv.style.overflow = 'hidden';
