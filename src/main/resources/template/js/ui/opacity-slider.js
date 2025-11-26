@@ -13,12 +13,15 @@ window.addEventListener("DOMContentLoaded", () => {
         slider.value = value;
         valueSpan.textContent = Math.round(value * 100) + '%';
 
+        const tilePane = document.querySelector('.leaflet-tile-pane');
+        if (!tilePane) return; // stop si pas encore créé
+
         if (value <= 1) {
-            document.querySelector('.leaflet-tile-pane').style.opacity = value;
+            tilePane.style.opacity = value;
             if (darkOverlay) darkOverlay.style.opacity = 0;
         } else {
             const darkness = 2 - value;
-            document.querySelector('.leaflet-tile-pane').style.opacity = darkness;
+            tilePane.style.opacity = darkness;
             if (darkOverlay) darkOverlay.style.opacity = 1;
         }
     };
