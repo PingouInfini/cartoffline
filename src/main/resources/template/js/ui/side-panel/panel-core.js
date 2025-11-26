@@ -41,10 +41,10 @@ function closePanel() {
     buttons.classList.remove("shifted");
     currentPanel = null;
 
+    // Masquer le panneau de l'opacité quand on ferme
     const sliderWrapper = document.querySelector('.global-opacity-slider');
     if (sliderWrapper) {
-        sliderWrapper.style.display = 'none';
-        document.body.appendChild(sliderWrapper);
+        sliderWrapper.style.display = 'none';  // Cache le slider
     }
 
     document.querySelectorAll('#right-buttons .action-btn')

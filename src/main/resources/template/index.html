@@ -33,16 +33,16 @@
     <button class="action-btn" onclick="togglePanel('statistics')">📊</button>
     <button class="action-btn" onclick="togglePanel('options')">⚙️</button>
 </div>
-
 <!-- PANEL LATÉRAL -->
 <div id="side-panel">
     <div id="close-panel" onclick="closePanel()">✖</div>
     <div id="panel-content"></div>
 </div>
-
+<!-- PANEL OPACITÉ -->
 <div class="global-opacity-slider" style="display:none;">
     <div class="opacity-control-row">
         <button id="decreaseOpacity" class="opacity-step-btn">-</button>
+        <label for="globalOpacity"></label>
         <input type="range" id="globalOpacity" min="0" max="2" step="0.01" value="1">
         <button id="increaseOpacity" class="opacity-step-btn">+</button>
     </div>
@@ -51,7 +51,6 @@
         <button id="resetOpacity" class="reset-opacity-btn">Réinitialiser</button>
     </div>
 </div>
-
 
 <!-- ================= JS DE L’APPLICATION ================= -->
 <!-- 1. Fonctions de carte -->
@@ -65,8 +64,6 @@
 <script src="js/layers/layer-control.js"></script>
 
 <!-- 3. UI divers -->
-<script src="js/ui/opacity-slider.js"></script>
-
 <script src="js/ui/side-panel/panel-cache.js"></script>
 <script src="js/ui/side-panel/panel-renderer.js"></script>
 
