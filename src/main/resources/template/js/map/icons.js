@@ -12,3 +12,8 @@ function getIconSize(zoom) {
     const size = baseSize * Math.pow(growthRate, zoom - 12);
     return Math.min(cappedSize, Math.round(size));
 }
+
+// Fonction pour appliquer un multiplicateur à la taille de l'icône
+function getAdjustedIconSize(zoom, sizeMultiplier) {
+    return getIconSize(zoom) * sizeMultiplier;
+}

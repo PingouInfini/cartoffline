@@ -39,7 +39,7 @@ function initializeMap() {
 
     map.on('zoomend', () => {
         const zoom = map.getZoom();
-        const newSize = getIconSize(zoom);
+        const newSize = getAdjustedIconSize(zoom, currentSizeMultiplier);  // Appliquer le multiplicateur
         mapMarkers.forEach(({ leafletMarker, iconUrl }) => {
             leafletMarker.setIcon(createIcon(iconUrl, newSize));
         });

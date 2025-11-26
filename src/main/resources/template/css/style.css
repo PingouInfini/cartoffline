@@ -158,25 +158,25 @@ html {
     color: #fff !important;
 }
 
-.global-opacity-slider {
+.global-slider {
     width: 100%;         /* prend toute la largeur du conteneur parent */
     box-sizing: border-box; /* inclut padding si besoin */
     padding: 0 8px;      /* optionnel, pour un peu de marge intérieure */
 }
 
-.global-opacity-slider input[type="range"] {
+.global-slider input[type="range"] {
     width: 100%; /* curseur prend toute la largeur */
 }
 
 /* Ligne avec slider et boutons +/- */
-.opacity-control-row {
+.slider-control-row {
     display: flex;
     align-items: center;
     gap: 6px;
     width: 100%;
 }
 
-.opacity-step-btn {
+.slider-step-btn {
     width: 28px;
     height: 28px;
     background-color: #53544C;
@@ -189,16 +189,16 @@ html {
     transition: background 0.2s, transform 0.1s;
 }
 
-.opacity-step-btn:hover {
+.slider-step-btn:hover {
     background-color: #41413a;
     transform: translateY(-1px);
 }
 
-.opacity-step-btn:active {
+.slider-step-btn:active {
     transform: translateY(0);
 }
 
-.global-opacity-slider input[type="range"] {
+.global-slider input[type="range"] {
     flex: 1;
     height: 6px;
     border-radius: 3px;
@@ -206,7 +206,7 @@ html {
     -webkit-appearance: none;
 }
 
-.global-opacity-slider input[type="range"]::-webkit-slider-thumb {
+.global-slider input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
     width: 16px;
     height: 16px;
@@ -217,7 +217,7 @@ html {
     margin-top: -5px; /* pour centrer le thumb */
 }
 
-.global-opacity-slider input[type="range"]::-moz-range-thumb {
+.global-slider input[type="range"]::-moz-range-thumb {
     width: 16px;
     height: 16px;
     background: #76C551;

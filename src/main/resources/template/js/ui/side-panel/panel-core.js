@@ -42,7 +42,7 @@ function closePanel() {
     currentPanel = null;
 
     // Masquer le panneau de l'opacité quand on ferme
-    const sliderWrapper = document.querySelector('.global-opacity-slider');
+    const sliderWrapper = document.querySelector('.global-slider');
     if (sliderWrapper) {
         sliderWrapper.style.display = 'none';  // Cache le slider
     }

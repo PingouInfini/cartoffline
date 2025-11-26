@@ -6,14 +6,14 @@ function renderOpacityPanel(container) {
 
     // Créer le contenu du slider d'opacité si ce n'est pas déjà fait
     const sliderWrapper = document.createElement('div');
-    sliderWrapper.classList.add('global-opacity-slider');
+    sliderWrapper.classList.add('global-slider');
 
     // Ajouter la structure du slider
     sliderWrapper.innerHTML = `
-        <div class="opacity-control-row">
-            <button id="decreaseOpacity" class="opacity-step-btn">-</button>
+        <div class="slider-control-row">
+            <button id="decreaseOpacity" class="slider-step-btn">-</button>
             <input type="range" id="globalOpacity" min="0" max="2" step="0.01" value="${currentOpacityValue}">
-            <button id="increaseOpacity" class="opacity-step-btn">+</button>
+            <button id="increaseOpacity" class="slider-step-btn">+</button>
         </div>
         <div style="margin-top:8px;">
             <span id="opacityValue">${Math.round(currentOpacityValue * 100)}%</span>
@@ -73,7 +73,7 @@ function renderOpacityPanel(container) {
 
 function hideOpacityPanel() {
     // Masquer le panneau d'opacité lorsqu'on ferme le panneau
-    const sliderWrapper = document.querySelector('.global-opacity-slider');
+    const sliderWrapper = document.querySelector('.global-slider');
     if (sliderWrapper) {
         sliderWrapper.style.display = 'none';
     }
