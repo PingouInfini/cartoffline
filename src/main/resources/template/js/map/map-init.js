@@ -3,6 +3,7 @@
 let map;
 let baseLayers = {};
 const mapMarkers = [];
+let mapCenterItem = [];
 
 function initializeMap() {
     const cachedLayer = L.tileLayer('cache-carto/{z}/{x}/{y}.png', {

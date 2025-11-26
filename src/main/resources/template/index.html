@@ -43,6 +43,7 @@
 <div class="global-opacity-slider" style="display:none;">
     <label for="globalOpacity">Opacité : <span id="opacityValue">100%</span></label><br>
     <input type="range" id="globalOpacity" min="0" max="2" step="0.01" value="1">
+    <button id="resetOpacity" class="reset-opacity-btn">Réinitialiser</button>
 </div>
 
 <!-- ================= JS DE L’APPLICATION ================= -->
@@ -58,7 +59,18 @@
 
 <!-- 3. UI divers -->
 <script src="js/ui/opacity-slider.js"></script>
-<script src="js/ui/side-panel.js"></script>
+
+<script src="js/ui/side-panel/panel-cache.js"></script>
+<script src="js/ui/side-panel/panel-renderer.js"></script>
+
+<script src="js/ui/side-panel/panel-baseLayers.js"></script>
+<script src="js/ui/side-panel/panel-layers.js"></script>
+<script src="js/ui/side-panel/panel-opacity.js"></script>
+<script src="js/ui/side-panel/panel-markerSize.js"></script>
+<script src="js/ui/side-panel/panel-statistics.js"></script>
+<script src="js/ui/side-panel/panel-options.js"></script>
+
+<script src="js/ui/side-panel/panel-core.js"></script>
 
 <!-- 4. Chargeur de données -->
 <script src="js/data/data-loader.js"></script>
