@@ -97,7 +97,8 @@ html {
 	/* caché */
 	width: 350px;
 	height: 100%;
-	background: white;
+	background: #212529; /* fond sombre */
+    color: #f1f1f1;       /* texte clair */
 	border-left: 1px solid #ccc;
 	box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
 	padding: 16px;
@@ -140,9 +141,8 @@ html {
 .action-btn {
 	width: 45px;
 	height: 45px;
-	border-radius: 6px;
-	border: 1px solid #aaa;
-	background: white;
+	border: none;
+	background: #53544C !important;
 	font-size: 20px;
 	cursor: pointer;
 	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
@@ -150,7 +150,12 @@ html {
 }
 
 .action-btn:hover {
-	background: #eee;
+	background: #000000 !important;
+}
+
+.action-btn.active-btn {
+    background: #76C551 !important;
+    color: #fff !important;
 }
 
 .global-opacity-slider {
